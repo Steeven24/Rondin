@@ -1,4 +1,7 @@
-import { StyleSheet } from "@react-pdf/renderer";
+import { Font, StyleSheet } from "@react-pdf/renderer";
+
+// Never split words with hyphens (addresses and names read badly when cut).
+Font.registerHyphenationCallback((word) => [word]);
 
 /** Brand colors (same as the app) used in the institutional report. */
 export const COLORS = {
@@ -28,8 +31,8 @@ export const styles = StyleSheet.create({
   bandProgram: { color: "#ffffff", fontSize: 13, fontFamily: "Helvetica-Bold" },
   bandSub: { color: "#dcdcf3", fontSize: 8, marginTop: 2 },
   bandRight: { color: "#dcdcf3", fontSize: 8, textAlign: "right" },
-  footer: { position: "absolute", bottom: 24, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", fontSize: 7, color: COLORS.muted, borderTopWidth: 0.5, borderTopColor: COLORS.line, paddingTop: 6 },
-  title: { fontSize: 15, fontFamily: "Helvetica-Bold", color: COLORS.brandDeep, textAlign: "center", marginBottom: 2 },
+  footer: { position: "absolute", top: 806, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", fontSize: 7, color: COLORS.muted, borderTopWidth: 0.5, borderTopColor: COLORS.line, paddingTop: 6 },
+  title: { fontSize: 15, fontFamily: "Helvetica-Bold", color: COLORS.brandDeep, textAlign: "center", lineHeight: 1.2, marginBottom: 6 },
   subtitle: { fontSize: 9, color: COLORS.muted, textAlign: "center", marginBottom: 14 },
   h2: { fontSize: 11, fontFamily: "Helvetica-Bold", color: COLORS.brand, marginTop: 14, marginBottom: 6, paddingBottom: 3, borderBottomWidth: 1, borderBottomColor: COLORS.accent },
   paragraph: { marginBottom: 4, textAlign: "justify" },

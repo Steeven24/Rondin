@@ -4,18 +4,26 @@ import type { PdfReportData } from "./report-data";
 import { COLORS, styles } from "./styles";
 import { dateFormat, Table } from "./sections-summary";
 
+/**
+ * Source addresses often come as "ARICA,S/N,BARRANQUILLA". Without spaces the PDF can't wrap them,
+ * so a space is added after commas and semicolons (display only; the data isn't changed).
+ */
+export function wrappable(text: string | null): string {
+  return text ? text.replace(/([,;])(?=\S)/g, "$1 ") : "—";
+}
+
 const dateTime = new Intl.DateTimeFormat("es-EC", { dateStyle: "short", timeStyle: "short", timeZone: "America/Guayaquil" });
 
 export function PremisesDetail({ data }: { data: PdfReportData }) {
   return (
     <Table
       head={["N.º", "RUC", "Local / representante", "Dirección", "Estado", "N.º func.", "Visitado por / fecha"]}
-      widths={[5, 13, 22, 20, 13, 10, 17]}
+      widths={[5, 13, 21, 19, 12, 14, 16]}
       rows={data.premises.map((p, i) => [
         String(i + 1),
         p.ruc,
-        `${p.tradeName ?? "Sin nombre comercial"}\n${p.ownerName ?? ""}`,
-        p.address ?? "—",
+        `${wrappable(p.tradeName ?? "Sin nombre comercial")}\n${p.ownerName ?? ""}`,
+        wrappable(p.address),
         p.status ? VISIT_STATUS_LABELS[p.status] : "Pendiente",
         p.registrationNumber ?? "—",
         p.visitedBy ? `${p.visitedBy}\n${p.visitedAt ? dateFormat.format(new Date(p.visitedAt)) : ""}` : "—",
@@ -32,7 +40,7 @@ export function Novelties({ data }: { data: PdfReportData }) {
     <Table
       head={["Local", "RUC", "Observación"]}
       widths={[32, 18, 50]}
-      rows={rows.map((p) => [p.tradeName ?? "Sin nombre comercial", p.ruc, observationText(p)])}
+      rows={rows.map((p) => [p.tradeName ?? "Sin nombre comercial", p.ruc, wrappable(observationText(p))])}
     />
   );
 }

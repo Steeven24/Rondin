@@ -37,7 +37,7 @@ export function GroupReport({ data }: { data: PdfReportData }) {
         <Text style={styles.h2}>4. Metodología</Text>
         <Text style={styles.paragraph}>
           Visita presencial a cada local, verificación de su funcionamiento y del número de registro anual, y registro
-          fotográfico tomado desde la aplicación Rondín con fecha, hora y ubicación GPS. Cada visita fue revisada por el
+          fotográfico tomado desde la aplicación Rondín con fecha, hora y ubicación GPS. Las visitas son revisadas por el
           líder del grupo.
         </Text>
 
@@ -55,8 +55,8 @@ export function GroupReport({ data }: { data: PdfReportData }) {
 
         <Text style={styles.h2}>8. Conclusiones y recomendaciones</Text>
         <Text style={styles.paragraph}>
-          Se visitaron {visited} de {data.premises.length} locales asignados al grupo; {withPermit} funcionan con permiso
-          anual de funcionamiento registrado.
+          Se visitaron {visited} de {data.premises.length} locales asignados al grupo; {withPermit} {withPermit === 1 ? "funciona" : "funcionan"} con
+          permiso anual de funcionamiento registrado.
         </Text>
         <View>
           {[0, 1, 2, 3].map((i) => (
