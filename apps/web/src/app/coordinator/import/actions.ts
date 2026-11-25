@@ -29,6 +29,9 @@ export async function importSurvey(payload: SurveyImport): Promise<ImportResult>
     p_groups: groups,
   });
 
+  if (error?.message.includes("Close the active survey")) {
+    return { error: "Ya hay un relevamiento activo. Ciérralo desde el panel general antes de subir otro." };
+  }
   if (error) return { error: "No se pudo guardar el relevamiento. Inténtalo de nuevo." };
 
   revalidatePath("/coordinator");
