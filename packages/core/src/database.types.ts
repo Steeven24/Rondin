@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "groups": {
                   Row: {
-                    "created_at": string,"id": string,"invite_code": string,"leader_id": string | null,"name": string,"source_sheet": string | null,"survey_id": string
+                    "created_at": string,"id": string,"invite_code": string,"leader_id": string | null,"name": string,"position": number,"source_sheet": string | null,"survey_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name": string,"source_sheet"?: string | null,"survey_id": string
+                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name": string,"position"?: number,"source_sheet"?: string | null,"survey_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name"?: string,"source_sheet"?: string | null,"survey_id"?: string
+                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name"?: string,"position"?: number,"source_sheet"?: string | null,"survey_id"?: string
                   }
                   Relationships: [
                     {
@@ -196,7 +196,7 @@ isOneToOne: false
           Views: {
             "group_progress": {
                   Row: {
-                    "closed": number | null,"group_id": string,"group_name": string,"leader_id": string | null,"leader_name": string | null,"not_found": number | null,"not_visited": number | null,"survey_id": string,"total_premises": number | null,"visited": number | null,"with_permit": number | null,"without_permit": number | null
+                    "closed": number | null,"group_id": string,"group_name": string,"leader_id": string | null,"leader_name": string | null,"not_found": number | null,"not_visited": number | null,"position": number,"survey_id": string,"total_premises": number | null,"visited": number | null,"with_permit": number | null,"without_permit": number | null
                   }
                   ComputedFields: never
                   Relationships: [
