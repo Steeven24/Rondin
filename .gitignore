@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Builds
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Environment (never commit secrets)
+.env
+.env.*
+!.env.example
+
+# Supabase local
+supabase/.branches/
+supabase/.temp/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Local data files (may contain personal data)
+*.xlsx
+*.xls
+!**/fixtures/*.xlsx
