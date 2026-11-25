@@ -13,6 +13,7 @@ const GROUPS = 11;
 const PER_GROUP = 14;
 
 const workbook = utils.book_new();
+const sheets = [];
 for (let group = 1; group <= GROUPS; group++) {
   const rows = [HEADER];
   for (let i = 0; i < PER_GROUP; i++) {
@@ -30,8 +31,13 @@ for (let group = 1; group <= GROUPS; group++) {
   // Typical Excel damage, to show the validations.
   if (group === 1) rows[3][0] = "1,8025E+12";
   if (group === 2) rows[2][0] = "190012345001";
-  utils.book_append_sheet(workbook, utils.aoa_to_sheet(rows), `Grupo ${group}`);
+  sheets.push([`Grupo ${group}`, rows]);
 }
+
+// Like the real file: a first master sheet with every premise, which is not imported.
+const reference = [HEADER, ...sheets.flatMap(([, rows]) => rows.slice(1))];
+utils.book_append_sheet(workbook, utils.aoa_to_sheet(reference), "MATRIZ REFERENCIA");
+for (const [name, rows] of sheets) utils.book_append_sheet(workbook, utils.aoa_to_sheet(rows), name);
 
 const out = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..", "fixtures", "sample-survey.xlsx");
 mkdirSync(dirname(out), { recursive: true });
