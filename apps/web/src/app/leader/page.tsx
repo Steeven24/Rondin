@@ -9,8 +9,12 @@ import { RemoveMemberButton } from "./remove-member-button";
 
 export const metadata: Metadata = { title: "Mi grupo" };
 
-export default async function LeaderPage({ searchParams }: { searchParams: Promise<{ member?: string }> }) {
-  const { member } = await searchParams;
+export default async function LeaderPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ member?: string; review?: string }>;
+}) {
+  const { member, review } = await searchParams;
   const profile = await requireRole("leader");
   const supabase = await createClient();
 
@@ -46,7 +50,10 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
   const rows = (premises ?? []).map((p) => ({ ...p, visit: p.visits ?? null }));
   const visited = rows.filter((r) => r.visit).length;
   const toReview = rows.filter((r) => r.visit?.review_status === "pending").length;
-  const shown = member ? rows.filter((r) => r.assigned_to === member) : rows;
+  const toReviewOnly = review === "pending";
+  const shown = rows
+    .filter((r) => !member || r.assigned_to === member)
+    .filter((r) => !toReviewOnly || r.visit?.review_status === "pending");
   const selectedMember = (members ?? []).find((m) => m.id === member);
   const memberCards = [{ id: "", full_name: "Todos" }, ...(members ?? [])].map((m) => {
     const mine = rows.filter((r) => !m.id || r.assigned_to === m.id);
@@ -64,7 +71,14 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
             <span className="w-48">
               <ProgressBar value={percent(visited, rows.length)} label="Avance del grupo" />
             </span>
-            {visited} de {rows.length} visitados · {toReview} por revisar
+            {visited} de {rows.length} visitados ·{" "}
+            <Link
+              href={toReviewOnly ? "/leader" : "/leader?review=pending"}
+              aria-current={toReviewOnly ? "true" : undefined}
+              className={`rounded-full px-2.5 py-0.5 font-semibold ${toReviewOnly ? "bg-brand text-white" : toReview > 0 ? "bg-warn-soft text-warn" : "text-muted"}`}
+            >
+              {toReview} por revisar
+            </Link>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
@@ -106,7 +120,7 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
         </div>
       )}
 
-      <PremisesTable key={member ?? "all"} rows={shown} members={members ?? []} />
+      <PremisesTable key={`${member ?? "all"}-${review ?? ""}`} rows={shown} members={members ?? []} />
     </>
   );
 }
