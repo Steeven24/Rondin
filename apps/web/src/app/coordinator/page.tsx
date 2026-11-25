@@ -4,6 +4,7 @@ import { percent, PROGRESS_STATE, type ProgressState, progressState, sumProgress
 import { createClient } from "@/lib/supabase/server";
 import { getActiveSurvey } from "@/lib/surveys";
 import { CloseSurveyButton } from "./close-survey-button";
+import { SurveyDetails } from "./survey-details";
 
 const FILTERS: [string, string][] = [
   ["all", "Todos"],
@@ -68,8 +69,8 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
     <>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="text-[13px] text-muted">{survey.name}</span>
           <h1 className="text-[28px] font-semibold tracking-tight">Panel general</h1>
+          <SurveyDetails surveyId={survey.id} name={survey.name} institution={survey.institution} period={survey.period} />
         </div>
         <div className="flex flex-wrap gap-2.5">
           <CloseSurveyButton surveyId={survey.id} name={survey.name} />
