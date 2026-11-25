@@ -53,6 +53,26 @@ describe("parseWorkbook", () => {
     expect(rows.map((r) => r.level)).toEqual(["error", "warning", "error"]);
   });
 
+  it("reads the columns of the real source file", () => {
+    const data = buildWorkbook({
+      "Grupo 1": [
+        ["RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION", "TELEFONO", "VALOR"],
+        ["1800000000001", "Tienda", "Víveres Ana", "Ana Pérez", "Calle 1", "0990000000", 25.5],
+      ],
+    });
+
+    expect(parseWorkbook(data)[0]?.rows[0]?.premise).toEqual({
+      ruc: "1800000000001",
+      activity: "Tienda",
+      trade_name: "Víveres Ana",
+      owner_name: "Ana Pérez",
+      address: "Calle 1",
+      phone: "0990000000",
+      sector: null,
+      value: "25.5",
+    });
+  });
+
   it("reports a sheet without a RUC column", () => {
     const data = buildWorkbook({ Notas: [["Comentario"], ["nada"]] });
     expect(parseWorkbook(data)[0]?.missingColumns).toEqual(["ruc"]);

@@ -7,6 +7,7 @@ export const PREMISE_FIELDS = [
   "address",
   "phone",
   "sector",
+  "value",
 ] as const;
 export type PremiseField = (typeof PREMISE_FIELDS)[number];
 
@@ -16,11 +17,12 @@ export const REQUIRED_FIELDS: readonly PremiseField[] = ["ruc"];
 const HEADER_ALIASES: Record<PremiseField, string[]> = {
   ruc: ["ruc", "numero ruc", "n ruc", "nro ruc"],
   trade_name: ["nombre comercial", "nombre del local", "local", "establecimiento", "nombre fantasia"],
-  owner_name: ["propietario", "razon social", "nombre propietario", "contribuyente"],
-  activity: ["actividad", "actividad economica", "giro"],
+  owner_name: ["representante legal", "propietario", "razon social", "nombre propietario", "contribuyente"],
+  activity: ["tipo establecimiento", "tipo de establecimiento", "actividad", "actividad economica", "giro"],
   address: ["direccion", "ubicacion", "domicilio"],
   phone: ["telefono", "celular", "telefonos", "contacto"],
   sector: ["sector", "barrio", "parroquia", "zona"],
+  value: ["valor"],
 };
 
 export function normalizeHeader(value: unknown): string {

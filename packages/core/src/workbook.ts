@@ -63,6 +63,7 @@ function parseSheet(name: string, matrix: unknown[][], seen: Set<string>): Parse
       address: text(row, "address"),
       phone: text(row, "phone"),
       sector: text(row, "sector"),
+      value: text(row, "value"),
     };
     const messages: string[] = [];
     let level: RowLevel = "ok";
