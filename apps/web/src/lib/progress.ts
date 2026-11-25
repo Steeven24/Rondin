@@ -2,12 +2,16 @@ import type { Database } from "@rondin/core";
 
 export type GroupProgress = Database["public"]["Views"]["group_progress"]["Row"];
 
-export type ProgressState = "done" | "on_track" | "behind";
+/**
+ * Progress of a group. There is no deadline in a survey, so we can't tell "behind";
+ * the state only says whether the group has started and whether it is finished.
+ */
+export type ProgressState = "not_started" | "in_progress" | "done";
 
 export const PROGRESS_STATE: Record<ProgressState, { label: string; chip: string; bar: string }> = {
+  not_started: { label: "Sin iniciar", chip: "bg-soft text-muted", bar: "bg-[#cbcce0]" },
+  in_progress: { label: "En curso", chip: "bg-brand-soft text-brand-dark", bar: "bg-brand" },
   done: { label: "Listo", chip: "bg-ok-soft text-ok", bar: "bg-[#2f9e5d]" },
-  on_track: { label: "En curso", chip: "bg-brand-soft text-brand-dark", bar: "bg-brand" },
-  behind: { label: "Atrasado", chip: "bg-warn-soft text-warn", bar: "bg-[#e08a2b]" },
 };
 
 export function percent(done: number, total: number): number {
@@ -15,9 +19,8 @@ export function percent(done: number, total: number): number {
 }
 
 export function progressState(done: number, total: number): ProgressState {
-  const value = percent(done, total);
-  if (total > 0 && value === 100) return "done";
-  return value >= 50 ? "on_track" : "behind";
+  if (total > 0 && done >= total) return "done";
+  return done > 0 ? "in_progress" : "not_started";
 }
 
 /** Totals across all groups for the dashboard indicators. */

@@ -7,7 +7,8 @@ import { CloseSurveyButton } from "./close-survey-button";
 
 const FILTERS: [string, string][] = [
   ["all", "Todos"],
-  ["behind", "Atrasados"],
+  ["not_started", "Sin iniciar"],
+  ["in_progress", "En curso"],
   ["done", "Listos"],
 ];
 
