@@ -142,11 +142,16 @@ export function ImportWizard() {
 
       {totalValid > 0 && (
         <form action={submit} className="flex flex-col gap-4 rounded-2xl border border-line bg-white px-5 py-5">
-          <h2 className="text-lg font-semibold">Datos del relevamiento</h2>
+          <div className="flex flex-col gap-1">
+            <h2 className="text-lg font-semibold">Datos del relevamiento</h2>
+            <p className="text-[13px] text-muted">
+              Identifican este trabajo en el panel y en el título de los informes. Solo el nombre es obligatorio.
+            </p>
+          </div>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field label="Nombre" name="name" required minLength={3} placeholder="Relevamiento de locales · Ambato" />
-            <Field label="Institución o programa" name="institution" />
-            <Field label="Período" name="period" placeholder="2026-II" />
+            <Field label="Nombre" name="name" required minLength={3} placeholder="Relevamiento de locales Ambato" />
+            <Field label="Institución o programa" name="institution" placeholder="Ej.: GAD Municipal de Ambato" />
+            <Field label="Período" name="period" placeholder="Ej.: Noviembre 2026" />
           </div>
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-[13px] text-muted">
