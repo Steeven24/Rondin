@@ -7,7 +7,7 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 /** Loads the report rows of the given groups. RLS decides what the caller may read. */
 export async function loadReportGroups(supabase: Client, groupIds: string[]): Promise<ReportGroup[]> {
   const [{ data: groups }, { data: premises }] = await Promise.all([
-    supabase.from("groups").select("id, name").in("id", groupIds).order("name"),
+    supabase.from("groups").select("id, name").in("id", groupIds).order("position"),
     supabase
       .from("premises")
       .select(

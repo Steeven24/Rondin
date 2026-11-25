@@ -36,7 +36,7 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
     .from("group_progress")
     .select("*")
     .eq("survey_id", survey.id)
-    .order("group_name");
+    .order("position");
   const groups = (rows ?? []).map((g) => ({
     ...g,
     state: progressState(Number(g.visited), Number(g.total_premises)),
