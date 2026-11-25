@@ -7,6 +7,7 @@ import { StatusChip } from "@/components/status-chip";
 import { HOME_BY_ROLE, requireRole } from "@/lib/auth";
 import { loadEvidence, mapsUrl } from "@/lib/evidence";
 import { createClient } from "@/lib/supabase/server";
+import { ReviewPanel } from "../review-panel";
 
 export const metadata: Metadata = { title: "Evidencia de la visita" };
 
@@ -73,6 +74,9 @@ export default async function EvidencePage({ params }: { params: Promise<{ premi
             <h2 className="text-lg font-semibold">Fotos de respaldo ({photos.length})</h2>
             <PhotoGallery photos={photos} />
           </section>
+
+          {/* Only leaders review; RLS limits them to their group's active survey. */}
+          {profile.role === "leader" && <ReviewPanel visitId={visit.id} status={visit.review_status} />}
         </>
       )}
     </>
