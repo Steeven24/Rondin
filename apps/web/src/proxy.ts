@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/join", "/forgot-password", "/auth", "/privacy", "/api/health"];
+const PUBLIC_PATHS = ["/login", "/join", "/forgot-password", "/auth", "/privacy", "/api/health", "/offline"];
 
 /** Refreshes the Supabase session on every request and protects private routes. */
 export async function proxy(request: NextRequest) {
@@ -38,5 +38,8 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|.*\\.(?:png|jpg|svg|webp)$).*)"],
+  // PWA files (service worker, manifest, icons) must load without a session so the app can be installed.
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|manifest.webmanifest|sw.js|pwa-icon|icon|apple-icon|.*\\.(?:png|jpg|svg|webp)$).*)",
+  ],
 };
