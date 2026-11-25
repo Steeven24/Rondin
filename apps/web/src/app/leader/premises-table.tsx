@@ -27,7 +27,7 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-line bg-white pt-1.5 pb-4">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[980px] text-sm">
+        <table className="w-full min-w-[1100px] text-sm [&_td]:align-top">
           <thead>
             <tr className="text-left text-xs text-muted">
               <th className="px-5 py-3 font-normal">Local</th>
@@ -49,8 +49,8 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
                   </span>
                 </td>
                 <td className="px-3 py-2.5 text-muted">{p.activity ?? "—"}</td>
-                <td className="max-w-56 px-3 py-2.5 text-muted">{p.address ?? "—"}</td>
-                <td className="px-3 py-2.5">
+                <td className="min-w-56 px-3 py-2.5 break-words text-muted">{p.address ?? "—"}</td>
+                <td className="min-w-48 px-3 py-2.5">
                   <AssignSelect premiseId={p.id} assignedTo={p.assigned_to} members={members} disabled={!!p.visit} />
                 </td>
                 <td className="px-3 py-2.5"><StatusChip status={p.visit?.status} /></td>
