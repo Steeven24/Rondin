@@ -26,7 +26,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           ))}
         </ul>
       </section>
-      <section className="flex flex-[1_1_420px] items-center justify-center px-6 py-12">
+      {/* Extra bottom space so the install banner never covers the form. */}
+      <section className="flex flex-[1_1_420px] items-center justify-center px-6 pt-12 pb-28">
         <div className="flex w-full max-w-sm flex-col gap-6">{children}</div>
       </section>
     </div>
