@@ -127,7 +127,7 @@ export function ImportWizard() {
             {current.rows.some((r) => r.messages.includes(RUC_ISSUE_MESSAGES.scientific_notation)) && (
               <Alert kind="info">{RUC_ISSUE_MESSAGES.scientific_notation}</Alert>
             )}
-            <SheetPreview sheet={current} onFixRuc={(row, value) => fixRuc(selected, row, value)} />
+            <SheetPreview key={current.name} sheet={current} onFixRuc={(row, value) => fixRuc(selected, row, value)} />
           </section>
         </div>
       )}
