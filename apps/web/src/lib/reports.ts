@@ -7,11 +7,11 @@ type Client = Awaited<ReturnType<typeof createClient>>;
 /** Loads the report rows of the given groups. RLS decides what the caller may read. */
 export async function loadReportGroups(supabase: Client, groupIds: string[]): Promise<ReportGroup[]> {
   const [{ data: groups }, { data: premises }] = await Promise.all([
-    supabase.from("groups").select("id, name").in("id", groupIds).order("name"),
+    supabase.from("groups").select("id, name").in("id", groupIds).order("position"),
     supabase
       .from("premises")
       .select(
-        "group_id, ruc, trade_name, owner_name, activity, address, visits(status, registration_number, notes, visited_at, author:profiles!visits_user_id_fkey(full_name))",
+        "group_id, ruc, trade_name, owner_name, activity, address, phone, value, visits(status, registration_number, notes)",
       )
       .in("group_id", groupIds)
       .order("trade_name"),
@@ -27,11 +27,11 @@ export async function loadReportGroups(supabase: Client, groupIds: string[]): Pr
         owner_name: p.owner_name,
         activity: p.activity,
         address: p.address,
+        phone: p.phone,
+        value: p.value,
         status: p.visits?.status ?? null,
         registration_number: p.visits?.registration_number ?? null,
         notes: p.visits?.notes ?? null,
-        visited_by: p.visits?.author?.full_name ?? null,
-        visited_at: p.visits?.visited_at ?? null,
       })),
   }));
 }

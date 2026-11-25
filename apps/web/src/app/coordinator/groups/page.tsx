@@ -22,7 +22,7 @@ export default async function GroupsPage() {
     .from("group_progress")
     .select("group_id, group_name, leader_name, total_premises, visited")
     .eq("survey_id", survey.id)
-    .order("group_name");
+    .order("position");
   const { data: codes } = await supabase.from("groups").select("id, invite_code").eq("survey_id", survey.id);
   const codeById = new Map((codes ?? []).map((g) => [g.id, g.invite_code]));
 

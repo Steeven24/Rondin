@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { logout } from "@/app/(auth)/actions";
 import { Logo } from "@/components/logo";
-
-interface NavItem {
-  href: string;
-  label: string;
-}
+import { type NavItem, NavLinks } from "@/components/nav-links";
 
 interface AppHeaderProps {
   badge: string;
@@ -32,15 +28,7 @@ export function AppHeader({ badge, userName, nav = [] }: AppHeaderProps) {
           </Link>
           <span className="rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-semibold">{badge}</span>
         </div>
-        {nav.length > 0 && (
-          <nav aria-label="Secciones" className="flex flex-wrap gap-1 text-sm">
-            {nav.map((item) => (
-              <Link key={item.href} href={item.href} className="rounded-lg px-3 py-2 text-[#dcdcf3] hover:bg-brand-tint hover:text-white">
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-        )}
+        {nav.length > 0 && <NavLinks items={nav} />}
         <div className="flex items-center gap-3 text-sm">
           <span className="grid h-8 w-8 place-items-center rounded-full bg-accent text-xs font-bold text-brand-deep" aria-hidden="true">
             {initials(userName)}

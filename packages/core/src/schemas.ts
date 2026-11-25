@@ -18,6 +18,7 @@ export const premiseInputSchema = z.object({
   address: optionalText(250),
   phone: optionalText(40),
   sector: optionalText(80),
+  value: optionalText(40),
 });
 export type PremiseInput = z.infer<typeof premiseInputSchema>;
 
