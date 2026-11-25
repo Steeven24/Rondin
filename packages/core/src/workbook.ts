@@ -24,10 +24,12 @@ export interface ParsedSheet {
 
 const HEADER_SEARCH_ROWS = 10;
 
-/** The source file has a master sheet with every premise; it is not a group. */
+/**
+ * The source file has a master sheet ("MATRIZ REFERENCIA") with every premise; it is not a group.
+ * Only "referencia" is checked: "La Matriz" is also a parish name used by group sheets (e.g. "G9 La Matriz").
+ */
 export function isReferenceSheet(name: string): boolean {
-  const normalized = normalizeHeader(name);
-  return normalized.includes("matriz") || normalized.includes("referencia");
+  return normalizeHeader(name).includes("referencia");
 }
 
 /** Reads every sheet of the workbook. Each sheet becomes a group, except reference sheets. */

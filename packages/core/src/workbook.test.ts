@@ -89,6 +89,11 @@ describe("parseWorkbook", () => {
     expect(group2?.rows[0]?.level).toBe("ok");
   });
 
+  it("keeps group sheets named after the La Matriz parish", () => {
+    const data = buildWorkbook({ "G9 La Matriz": [HEADER, ["1800000000001", "", "Local A", "", "Calle 1", ""]] });
+    expect(parseWorkbook(data)[0]).toMatchObject({ isReference: false, rows: [{ level: "ok" }] });
+  });
+
   it("reports a sheet without a RUC column", () => {
     const data = buildWorkbook({ Notas: [["Comentario"], ["nada"]] });
     expect(parseWorkbook(data)[0]?.missingColumns).toEqual(["ruc"]);
