@@ -23,9 +23,11 @@ export function ImportWizard() {
     if (!file) return;
     if (file.size > MAX_FILE_BYTES) return setError("El archivo supera 5 MB.");
     try {
-      setSheets(parseWorkbook(await file.arrayBuffer()));
+      const parsed = parseWorkbook(await file.arrayBuffer());
+      setSheets(parsed);
       setFileName(file.name);
-      setSelected(0);
+      // Open the first group sheet, not the reference one.
+      setSelected(Math.max(0, parsed.findIndex((s) => !s.isReference)));
     } catch {
       setError("No se pudo leer el archivo. Asegúrate de que sea un Excel (.xlsx).");
     }
@@ -50,7 +52,7 @@ export function ImportWizard() {
     );
   }
 
-  const usable = sheets.filter((s) => s.missingColumns.length === 0);
+  const usable = sheets.filter((s) => !s.isReference && s.missingColumns.length === 0);
   const validRows = (sheet: ParsedSheet) => sheet.rows.filter((r) => r.level !== "error" && r.premise.ruc);
   const totalValid = usable.reduce((sum, s) => sum + validRows(s).length, 0);
   const totalErrors = usable.reduce((sum, s) => sum + s.rows.length - validRows(s).length, 0);
@@ -86,7 +88,7 @@ export function ImportWizard() {
           <span className="font-semibold">{fileName || "Ningún archivo seleccionado"}</span>
           <span className="text-[13px] text-muted">
             {sheets.length > 0
-              ? `${sheets.length} hojas · ${totalValid} locales válidos · cada hoja se convierte en un grupo`
+              ? `${usable.length} hojas de grupo · ${totalValid} locales válidos · cada hoja se convierte en un grupo`
               : "Sube el Excel con una hoja por grupo."}
           </span>
         </div>
@@ -113,10 +115,16 @@ export function ImportWizard() {
                   className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm ${selected === i ? "bg-brand-soft font-semibold" : ""}`}
                 >
                   <span className="flex-1">{sheet.name}</span>
-                  <span className="font-mono text-xs text-muted">{sheet.rows.length} filas</span>
-                  <span className={`min-w-6 rounded-full px-2 text-center text-xs font-semibold ${issues ? "bg-warn-soft text-warn" : "bg-ok-soft text-ok"}`}>
-                    {issues || "✓"}
-                  </span>
+                  {sheet.isReference ? (
+                    <span className="rounded-full bg-soft px-2 text-xs font-semibold text-muted">No se sube</span>
+                  ) : (
+                    <>
+                      <span className="font-mono text-xs text-muted">{sheet.rows.length} filas</span>
+                      <span className={`min-w-6 rounded-full px-2 text-center text-xs font-semibold ${issues ? "bg-warn-soft text-warn" : "bg-ok-soft text-ok"}`}>
+                        {issues || "✓"}
+                      </span>
+                    </>
+                  )}
                 </button>
               );
             })}

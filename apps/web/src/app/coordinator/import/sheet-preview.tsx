@@ -20,6 +20,9 @@ interface SheetPreviewProps {
 export function SheetPreview({ sheet, onFixRuc }: SheetPreviewProps) {
   const pagination = usePagination(sheet.rows, 10);
 
+  if (sheet.isReference) {
+    return <p className="text-sm text-muted">Hoja de referencia con el listado general: no se convierte en grupo ni se sube.</p>;
+  }
   if (sheet.missingColumns.length > 0) {
     return <p className="text-sm text-bad">Esta hoja no tiene una columna RUC reconocible y se omitirá.</p>;
   }
