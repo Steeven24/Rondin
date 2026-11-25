@@ -83,6 +83,14 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
     .filter((g) => g.premises.length > 0);
   const keptTeams = groups.filter((g) => g.team_code && knownTeams.some((t) => t.code === g.team_code)).length;
   const withoutCode = groups.filter((g) => !g.team_code).length;
+  const newTeams = groups.length - keptTeams;
+  // Teams that already exist are reused, so only say "create" for the new ones.
+  const groupsSummary =
+    newTeams === 0
+      ? `en tus ${groups.length} grupos existentes`
+      : keptTeams === 0
+        ? `en ${groups.length} grupos nuevos`
+        : `en ${keptTeams} grupos existentes y ${newTeams} nuevos`;
 
   // The form only opens the confirmation; the import runs when the coordinator confirms.
   function askConfirmation(formData: FormData) {
@@ -116,7 +124,7 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
           <span className="font-semibold">{fileName || "Ningún archivo seleccionado"}</span>
           <span className="text-[13px] text-muted">
             {sheets.length > 0
-              ? `${usable.length} hojas de grupo · ${totalValid} locales válidos · cada hoja se convierte en un grupo`
+              ? `${usable.length} hojas de grupo · ${totalValid} locales válidos · cada hoja corresponde a un grupo`
               : "Sube el Excel con una hoja por grupo."}
           </span>
         </div>
@@ -198,10 +206,14 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="text-[13px] text-muted">
               {totalErrors > 0 ? `${totalErrors} filas con errores se omitirán. ` : ""}
-              Después asignarás un líder a cada grupo.
+              {newTeams === 0
+                ? "Los grupos conservan su líder y sus miembros."
+                : keptTeams === 0
+                  ? "Después asignarás un líder a cada grupo."
+                  : `Después asignarás un líder a los ${newTeams} grupos nuevos.`}
             </span>
             <button type="submit" disabled={pending} className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white disabled:opacity-60">
-              {`Revisar y crear ${groups.length} grupos`}
+              Revisar e importar
             </button>
           </div>
         </form>
@@ -209,19 +221,19 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
 
       <ConfirmDialog
         open={!!surveyForm}
-        title="¿Crear el relevamiento?"
-        confirmLabel={`Sí, crear ${groups.length} grupos`}
+        title="¿Importar el relevamiento?"
+        confirmLabel="Sí, importar"
         pending={pending}
         onConfirm={runImport}
         onCancel={() => setSurveyForm(null)}
       >
         <p>
-          Se creará <strong className="text-ink">«{String(surveyForm?.get("name") ?? "")}»</strong> con{" "}
-          <strong className="text-ink">{groups.length} grupos</strong> y <strong className="text-ink">{totalValid} locales</strong>.
+          Se iniciará <strong className="text-ink">«{String(surveyForm?.get("name") ?? "")}»</strong> y se cargarán{" "}
+          <strong className="text-ink">{totalValid} locales</strong> {groupsSummary}.
         </p>
         <ul className="list-disc space-y-1 pl-5">
-          {keptTeams > 0 && <li>{keptTeams} equipos se mantienen con su líder y sus miembros.</li>}
-          {groups.length - keptTeams > 0 && <li>{groups.length - keptTeams} equipos son nuevos y necesitarán un líder.</li>}
+          {keptTeams > 0 && <li>{keptTeams} grupos se mantienen con su líder y sus miembros: no hay que crear cuentas otra vez.</li>}
+          {newTeams > 0 && <li>{newTeams} grupos son nuevos y necesitarán un líder.</li>}
           {withoutCode > 0 && <li className="text-warn">{withoutCode} hojas no tienen código (G#): no se podrán reconocer en el siguiente relevamiento.</li>}
           {totalErrors > 0 && <li className="text-warn">{totalErrors} filas con errores se omitirán.</li>}
         </ul>
