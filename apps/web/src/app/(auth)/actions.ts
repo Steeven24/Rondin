@@ -22,8 +22,13 @@ export async function login(_: FormState, formData: FormData): Promise<FormState
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  // Same message for every failure so we don't reveal which emails exist.
-  if (error) return { error: "Correo o contraseña incorrectos." };
+  if (error) {
+    // Wrong email and wrong password get the same message so we don't reveal which emails exist.
+    if (error.code === "invalid_credentials") return { error: "Correo o contraseña incorrectos." };
+    // Anything else is a configuration or connection problem: log it (never the email or password).
+    console.error("Sign-in failed", { status: error.status, code: error.code, name: error.name, message: error.message });
+    return { error: "No se pudo conectar con el servicio de inicio de sesión. Inténtalo más tarde." };
+  }
 
   const profile = await getProfile();
   if (!profile) {
