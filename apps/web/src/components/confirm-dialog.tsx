@@ -90,6 +90,8 @@ export function ConfirmDialog({
             type="button"
             onClick={onCancel}
             disabled={pending}
+            // On dangerous actions an accidental Enter should cancel, not confirm.
+            autoFocus={tone === "danger"}
             className="h-11 rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
           >
             {cancelLabel}
@@ -98,7 +100,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onConfirm}
             disabled={pending}
-            autoFocus
+            autoFocus={tone !== "danger"}
             className={`h-11 rounded-xl px-4 text-sm font-semibold disabled:opacity-60 ${confirmStyle}`}
           >
             {pending ? "Procesando…" : confirmLabel}

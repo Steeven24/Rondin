@@ -2,33 +2,49 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { removeMember } from "./actions";
 
 export function RemoveMemberButton({ memberId, name }: { memberId: string; name: string }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
 
-  function handleClick() {
-    if (!window.confirm(`¿Quitar a ${name} del equipo? Sus locales pendientes quedarán sin asignar.`)) return;
+  function confirm() {
     startTransition(async () => {
       const result = await removeMember(memberId);
       if (result.error) return setError(result.error);
+      setOpen(false);
       router.push("/leader");
     });
   }
 
   return (
-    <span className="flex items-center gap-3">
+    <>
       <button
         type="button"
-        onClick={handleClick}
-        disabled={pending}
-        className="h-10 rounded-xl border border-[#e8b4a0] px-3.5 text-sm font-semibold text-bad hover:bg-bad-soft disabled:opacity-60"
+        onClick={() => {
+          setError("");
+          setOpen(true);
+        }}
+        className="h-10 rounded-xl border border-[#e8b4a0] px-3.5 text-sm font-semibold text-bad hover:bg-bad-soft"
       >
-        {pending ? "Quitando…" : `Quitar a ${name} del equipo`}
+        Quitar a {name} del equipo
       </button>
-      {error && <span className="text-sm text-bad">{error}</span>}
-    </span>
+      <ConfirmDialog
+        open={open}
+        tone="danger"
+        title={`¿Quitar a ${name} del equipo?`}
+        confirmLabel="Sí, quitar del equipo"
+        pending={pending}
+        error={error}
+        onConfirm={confirm}
+        onCancel={() => setOpen(false)}
+      >
+        <p>Sus locales <strong className="text-ink">pendientes quedarán sin asignar</strong> para que se los repartas a otro miembro. Las visitas que ya registró se conservan.</p>
+        <p>Dejará de ver los locales del equipo.</p>
+      </ConfirmDialog>
+    </>
   );
 }
