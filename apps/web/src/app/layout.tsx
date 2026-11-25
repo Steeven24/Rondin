@@ -20,9 +20,24 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/**
+ * Chrome fires `beforeinstallprompt` only once and often before React hydrates, so a listener
+ * added in a component can miss it. This tiny inline script keeps the event for the install banner.
+ */
+const CAPTURE_INSTALL_PROMPT = `
+window.addEventListener("beforeinstallprompt", function (e) {
+  e.preventDefault();
+  window.__rondinInstallPrompt = e;
+  window.dispatchEvent(new Event("rondin:installable"));
+});
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es" className={`${onest.variable} ${jetbrains.variable}`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: CAPTURE_INSTALL_PROMPT }} />
+      </head>
       <body className="min-h-screen antialiased">
         {children}
         <ServiceWorker />
