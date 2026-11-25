@@ -1,0 +1,156 @@
+"use client";
+
+import { normalizeRuc, type ParsedSheet, parseWorkbook, RUC_ISSUE_MESSAGES } from "@rondin/core";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
+import { Alert, Field } from "@/components/ui";
+import { importSurvey } from "./actions";
+import { SheetPreview } from "./sheet-preview";
+
+const MAX_FILE_BYTES = 5 * 1024 * 1024;
+
+export function ImportWizard() {
+  const router = useRouter();
+  const [fileName, setFileName] = useState("");
+  const [sheets, setSheets] = useState<ParsedSheet[]>([]);
+  const [selected, setSelected] = useState(0);
+  const [error, setError] = useState("");
+  const [pending, startTransition] = useTransition();
+
+  // The file is read in the browser: personal data only leaves the device after confirming.
+  async function handleFile(file: File | undefined) {
+    setError("");
+    if (!file) return;
+    if (file.size > MAX_FILE_BYTES) return setError("El archivo supera 5 MB.");
+    try {
+      setSheets(parseWorkbook(await file.arrayBuffer()));
+      setFileName(file.name);
+      setSelected(0);
+    } catch {
+      setError("No se pudo leer el archivo. Asegúrate de que sea un Excel (.xlsx).");
+    }
+  }
+
+  function fixRuc(sheetIndex: number, rowNumber: number, value: string) {
+    const result = normalizeRuc(value);
+    if (!result.value) return;
+    setSheets((current) =>
+      current.map((sheet, i) =>
+        i !== sheetIndex
+          ? sheet
+          : {
+              ...sheet,
+              rows: sheet.rows.map((row) =>
+                row.rowNumber !== rowNumber
+                  ? row
+                  : { ...row, premise: { ...row.premise, ruc: result.value }, level: "ok", messages: [] },
+              ),
+            },
+      ),
+    );
+  }
+
+  const usable = sheets.filter((s) => s.missingColumns.length === 0);
+  const validRows = (sheet: ParsedSheet) => sheet.rows.filter((r) => r.level !== "error" && r.premise.ruc);
+  const totalValid = usable.reduce((sum, s) => sum + validRows(s).length, 0);
+  const totalErrors = usable.reduce((sum, s) => sum + s.rows.length - validRows(s).length, 0);
+
+  function submit(formData: FormData) {
+    setError("");
+    const groups = usable
+      .map((sheet) => ({
+        name: sheet.name.slice(0, 80),
+        source_sheet: sheet.name.slice(0, 80),
+        premises: validRows(sheet).map((r) => ({ ...r.premise, ruc: r.premise.ruc as string })),
+      }))
+      .filter((g) => g.premises.length > 0);
+
+    startTransition(async () => {
+      const result = await importSurvey({
+        name: String(formData.get("name") ?? ""),
+        institution: String(formData.get("institution") ?? ""),
+        period: String(formData.get("period") ?? ""),
+        groups,
+      });
+      if (result.error) return setError(result.error);
+      router.push("/coordinator/groups");
+    });
+  }
+
+  const current = sheets[selected];
+
+  return (
+    <div className="flex flex-col gap-5">
+      <section className="flex flex-wrap items-center gap-4 rounded-2xl border border-line bg-white px-5 py-4">
+        <div className="flex min-w-52 flex-1 flex-col">
+          <span className="font-semibold">{fileName || "Ningún archivo seleccionado"}</span>
+          <span className="text-[13px] text-muted">
+            {sheets.length > 0
+              ? `${sheets.length} hojas · ${totalValid} locales válidos · cada hoja se convierte en un grupo`
+              : "Sube el Excel con una hoja por grupo."}
+          </span>
+        </div>
+        <label className="flex h-11 cursor-pointer items-center rounded-xl border border-line-strong px-4 text-sm font-semibold hover:bg-canvas">
+          {sheets.length > 0 ? "Cambiar archivo" : "Elegir archivo"}
+          <input type="file" accept=".xlsx,.xls" className="sr-only" onChange={(e) => handleFile(e.target.files?.[0])} />
+        </label>
+      </section>
+
+      {error && <Alert>{error}</Alert>}
+
+      {current && (
+        <div className="flex flex-wrap items-start gap-5">
+          <nav aria-label="Hojas" className="flex min-w-0 flex-[1_1_240px] flex-col gap-1 rounded-2xl border border-line bg-white p-4">
+            <h2 className="px-2 pb-2 text-[15px] font-semibold">Hojas → grupos</h2>
+            {sheets.map((sheet, i) => {
+              const issues = sheet.rows.filter((r) => r.level !== "ok").length;
+              return (
+                <button
+                  key={sheet.name}
+                  type="button"
+                  aria-pressed={selected === i}
+                  onClick={() => setSelected(i)}
+                  className={`flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-left text-sm ${selected === i ? "bg-brand-soft font-semibold" : ""}`}
+                >
+                  <span className="flex-1">{sheet.name}</span>
+                  <span className="font-mono text-xs text-muted">{sheet.rows.length} filas</span>
+                  <span className={`min-w-6 rounded-full px-2 text-center text-xs font-semibold ${issues ? "bg-warn-soft text-warn" : "bg-ok-soft text-ok"}`}>
+                    {issues || "✓"}
+                  </span>
+                </button>
+              );
+            })}
+          </nav>
+
+          <section className="flex min-w-0 flex-[999_1_640px] flex-col gap-3.5 rounded-2xl border border-line bg-white px-5 py-5">
+            <h2 className="text-lg font-semibold">Vista previa · {current.name}</h2>
+            {current.rows.some((r) => r.messages.includes(RUC_ISSUE_MESSAGES.scientific_notation)) && (
+              <Alert kind="info">{RUC_ISSUE_MESSAGES.scientific_notation}</Alert>
+            )}
+            <SheetPreview sheet={current} onFixRuc={(row, value) => fixRuc(selected, row, value)} />
+          </section>
+        </div>
+      )}
+
+      {totalValid > 0 && (
+        <form action={submit} className="flex flex-col gap-4 rounded-2xl border border-line bg-white px-5 py-5">
+          <h2 className="text-lg font-semibold">Datos del relevamiento</h2>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Field label="Nombre" name="name" required minLength={3} placeholder="Relevamiento de locales · Ambato" />
+            <Field label="Institución o programa" name="institution" />
+            <Field label="Período" name="period" placeholder="2026-II" />
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-[13px] text-muted">
+              {totalErrors > 0 ? `${totalErrors} filas con errores se omitirán. ` : ""}
+              Después asignarás un líder a cada grupo.
+            </span>
+            <button type="submit" disabled={pending} className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white disabled:opacity-60">
+              {pending ? "Creando grupos…" : `Confirmar y crear ${usable.filter((s) => validRows(s).length).length} grupos`}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+}
