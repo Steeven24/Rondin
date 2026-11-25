@@ -1,6 +1,6 @@
 "use client";
 
-import { normalizeRuc, type ParsedSheet, parseWorkbook, RUC_ISSUE_MESSAGES } from "@rondin/core";
+import { extractTeamCode, normalizeRuc, type ParsedSheet, parseWorkbook, RUC_ISSUE_MESSAGES } from "@rondin/core";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { Alert, Field } from "@/components/ui";
@@ -9,7 +9,21 @@ import { SheetPreview } from "./sheet-preview";
 
 const MAX_FILE_BYTES = 5 * 1024 * 1024;
 
-export function ImportWizard() {
+export interface KnownTeam {
+  code: string;
+  leaderName: string | null;
+}
+
+/** What happens to the team of a sheet: reused (with its leader), new, or no code at all. */
+function teamStatus(sheetName: string, knownTeams: KnownTeam[]) {
+  const code = extractTeamCode(sheetName);
+  if (!code) return { code, label: "Sin código (G#): equipo nuevo", tone: "text-warn" };
+  const known = knownTeams.find((t) => t.code === code);
+  if (!known) return { code, label: `${code} · equipo nuevo`, tone: "text-muted" };
+  return { code, label: `${code} · se mantiene${known.leaderName ? ` con ${known.leaderName}` : " (sin líder)"}`, tone: "text-ok" };
+}
+
+export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
   const router = useRouter();
   const [fileName, setFileName] = useState("");
   const [sheets, setSheets] = useState<ParsedSheet[]>([]);
@@ -63,6 +77,7 @@ export function ImportWizard() {
       .map((sheet) => ({
         name: sheet.name.slice(0, 80),
         source_sheet: sheet.name.slice(0, 80),
+        team_code: extractTeamCode(sheet.name),
         premises: validRows(sheet).map((r) => ({ ...r.premise, ruc: r.premise.ruc as string })),
       }))
       .filter((g) => g.premises.length > 0);
@@ -131,7 +146,14 @@ export function ImportWizard() {
           </nav>
 
           <section className="flex min-w-0 flex-[999_1_640px] flex-col gap-3.5 rounded-2xl border border-line bg-white px-5 py-5">
-            <h2 className="text-lg font-semibold">Vista previa · {current.name}</h2>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="text-lg font-semibold">Vista previa · {current.name}</h2>
+              {!current.isReference && (
+                <span className={`text-[13px] font-semibold ${teamStatus(current.name, knownTeams).tone}`}>
+                  Equipo: {teamStatus(current.name, knownTeams).label}
+                </span>
+              )}
+            </div>
             {current.rows.some((r) => r.messages.includes(RUC_ISSUE_MESSAGES.scientific_notation)) && (
               <Alert kind="info">{RUC_ISSUE_MESSAGES.scientific_notation}</Alert>
             )}
