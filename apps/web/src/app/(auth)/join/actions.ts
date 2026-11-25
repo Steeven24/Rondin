@@ -24,15 +24,15 @@ const joinSchema = z.object({
   privacy: z.literal("on", { error: "Debes aceptar el aviso de privacidad" }),
 });
 
-/** Creates a member account and joins it to the group of the invitation code, in one step. */
+/** Creates a member account and joins it to the team of the invitation code, in one step. */
 export async function joinWithCode(_: FormState, formData: FormData): Promise<FormState> {
   const parsed = joinSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const { code, full_name, national_id, email, password } = parsed.data;
 
   const admin = createAdminClient();
-  const { data: group } = await admin.from("groups").select("id").eq("invite_code", code).maybeSingle();
-  if (!group) return { error: "El código de invitación no es válido." };
+  const { data: team } = await admin.from("teams").select("id").eq("invite_code", code).maybeSingle();
+  if (!team) return { error: "El código de invitación no es válido." };
 
   const { data: created, error: createError } = await admin.auth.admin.createUser({
     email,
@@ -49,7 +49,7 @@ export async function joinWithCode(_: FormState, formData: FormData): Promise<Fo
     national_id,
     email,
     role: "member",
-    group_id: group.id,
+    team_id: team.id,
     privacy_accepted_at: new Date().toISOString(),
   });
   if (profileError) {

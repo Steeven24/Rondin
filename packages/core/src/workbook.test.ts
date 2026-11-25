@@ -53,6 +53,47 @@ describe("parseWorkbook", () => {
     expect(rows.map((r) => r.level)).toEqual(["error", "warning", "error"]);
   });
 
+  it("reads the columns of the real source file", () => {
+    const data = buildWorkbook({
+      "Grupo 1": [
+        ["RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION", "TELEFONO", "VALOR"],
+        ["1800000000001", "Tienda", "Víveres Ana", "Ana Pérez", "Calle 1", "0990000000", 25.5],
+      ],
+    });
+
+    expect(parseWorkbook(data)[0]?.rows[0]?.premise).toEqual({
+      ruc: "1800000000001",
+      activity: "Tienda",
+      trade_name: "Víveres Ana",
+      owner_name: "Ana Pérez",
+      address: "Calle 1",
+      phone: "0990000000",
+      sector: null,
+      value: "25.5",
+    });
+  });
+
+  it("skips the reference sheet and does not flag its rows as duplicates", () => {
+    const rowA = ["1800000000001", "", "Local A", "", "Calle 1", ""];
+    const rowB = ["1800000000002", "", "Local B", "", "Calle 2", ""];
+    const data = buildWorkbook({
+      "MATRIZ REFERENCIA": [HEADER, rowA, rowB],
+      "Grupo 1": [HEADER, rowA],
+      "Grupo 2": [HEADER, rowB],
+    });
+
+    const [reference, group1, group2] = parseWorkbook(data);
+
+    expect(reference).toMatchObject({ isReference: true, rows: [] });
+    expect(group1?.rows[0]?.level).toBe("ok");
+    expect(group2?.rows[0]?.level).toBe("ok");
+  });
+
+  it("keeps group sheets named after the La Matriz parish", () => {
+    const data = buildWorkbook({ "G9 La Matriz": [HEADER, ["1800000000001", "", "Local A", "", "Calle 1", ""]] });
+    expect(parseWorkbook(data)[0]).toMatchObject({ isReference: false, rows: [{ level: "ok" }] });
+  });
+
   it("reports a sheet without a RUC column", () => {
     const data = buildWorkbook({ Notas: [["Comentario"], ["nada"]] });
     expect(parseWorkbook(data)[0]?.missingColumns).toEqual(["ruc"]);

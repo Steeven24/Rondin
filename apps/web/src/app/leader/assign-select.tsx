@@ -27,7 +27,7 @@ export function AssignSelect({ premiseId, assignedTo, members, disabled }: Assig
             setError(result.error ?? "");
           })
         }
-        className="h-9 rounded-lg border border-line-strong bg-white px-2 text-[13px] disabled:opacity-60"
+        className="h-9 w-full min-w-44 rounded-lg border border-line-strong bg-white px-2 text-[13px] disabled:opacity-60"
       >
         <option value="">Sin asignar</option>
         {members.map((m) => (

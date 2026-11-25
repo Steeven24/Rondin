@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "groups": {
                   Row: {
-                    "created_at": string,"id": string,"invite_code": string,"leader_id": string | null,"name": string,"source_sheet": string | null,"survey_id": string
+                    "created_at": string,"id": string,"name": string,"position": number,"source_sheet": string | null,"survey_id": string,"team_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name": string,"source_sheet"?: string | null,"survey_id": string
+                    "created_at"?: string,"id"?: string,"name": string,"position"?: number,"source_sheet"?: string | null,"survey_id": string,"team_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name"?: string,"source_sheet"?: string | null,"survey_id"?: string
+                    "created_at"?: string,"id"?: string,"name"?: string,"position"?: number,"source_sheet"?: string | null,"survey_id"?: string,"team_id"?: string
                   }
                   Relationships: [
                     {
@@ -40,6 +40,18 @@ export type Database = {
       columns: ["survey_id"]
 isOneToOne: false
       referencedRelation: "surveys"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "groups_team_id_fkey"
+      columns: ["team_id"]
+isOneToOne: false
+      referencedRelation: "group_progress"
+      referencedColumns: ["team_id"]
+    },{
+      foreignKeyName: "groups_team_id_fkey"
+      columns: ["team_id"]
+isOneToOne: false
+      referencedRelation: "teams"
       referencedColumns: ["id"]
     }
                   ]
@@ -77,14 +89,14 @@ isOneToOne: false
                   ]
                 },"premises": {
                   Row: {
-                    "activity": string | null,"address": string | null,"assigned_to": string | null,"created_at": string,"group_id": string,"id": string,"owner_name": string | null,"phone": string | null,"ruc": string,"sector": string | null,"trade_name": string | null
+                    "activity": string | null,"address": string | null,"assigned_to": string | null,"created_at": string,"group_id": string,"id": string,"owner_name": string | null,"phone": string | null,"ruc": string,"sector": string | null,"trade_name": string | null,"value": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id": string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc": string,"sector"?: string | null,"trade_name"?: string | null
+                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id": string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc": string,"sector"?: string | null,"trade_name"?: string | null,"value"?: string | null
                   }
                   Update: {
-                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id"?: string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc"?: string,"sector"?: string | null,"trade_name"?: string | null
+                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id"?: string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc"?: string,"sector"?: string | null,"trade_name"?: string | null,"value"?: string | null
                   }
                   Relationships: [
                     {
@@ -109,40 +121,54 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"email": string,"full_name": string,"group_id": string | null,"id": string,"national_id": string | null,"privacy_accepted_at": string | null,"role": Database["public"]['Enums']["user_role"]
+                    "created_at": string,"email": string,"full_name": string,"id": string,"national_id": string | null,"privacy_accepted_at": string | null,"role": Database["public"]['Enums']["user_role"],"team_id": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"email": string,"full_name": string,"group_id"?: string | null,"id": string,"national_id"?: string | null,"privacy_accepted_at"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
+                    "created_at"?: string,"email": string,"full_name": string,"id": string,"national_id"?: string | null,"privacy_accepted_at"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"team_id"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"email"?: string,"full_name"?: string,"group_id"?: string | null,"id"?: string,"national_id"?: string | null,"privacy_accepted_at"?: string | null,"role"?: Database["public"]['Enums']["user_role"]
+                    "created_at"?: string,"email"?: string,"full_name"?: string,"id"?: string,"national_id"?: string | null,"privacy_accepted_at"?: string | null,"role"?: Database["public"]['Enums']["user_role"],"team_id"?: string | null
                   }
                   Relationships: [
                     {
-      foreignKeyName: "profiles_group_id_fkey"
-      columns: ["group_id"]
+      foreignKeyName: "profiles_team_id_fkey"
+      columns: ["team_id"]
 isOneToOne: false
       referencedRelation: "group_progress"
-      referencedColumns: ["group_id"]
+      referencedColumns: ["team_id"]
     },{
-      foreignKeyName: "profiles_group_id_fkey"
-      columns: ["group_id"]
+      foreignKeyName: "profiles_team_id_fkey"
+      columns: ["team_id"]
 isOneToOne: false
-      referencedRelation: "groups"
+      referencedRelation: "teams"
       referencedColumns: ["id"]
     }
                   ]
                 },"surveys": {
                   Row: {
-                    "created_at": string,"created_by": string,"id": string,"institution": string | null,"name": string,"period": string | null
+                    "closed_at": string | null,"created_at": string,"created_by": string,"id": string,"institution": string | null,"name": string,"period": string | null,"status": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"created_by": string,"id"?: string,"institution"?: string | null,"name": string,"period"?: string | null
+                    "closed_at"?: string | null,"created_at"?: string,"created_by": string,"id"?: string,"institution"?: string | null,"name": string,"period"?: string | null,"status"?: string
                   }
                   Update: {
-                    "created_at"?: string,"created_by"?: string,"id"?: string,"institution"?: string | null,"name"?: string,"period"?: string | null
+                    "closed_at"?: string | null,"created_at"?: string,"created_by"?: string,"id"?: string,"institution"?: string | null,"name"?: string,"period"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"teams": {
+                  Row: {
+                    "code": string | null,"created_at": string,"id": string,"invite_code": string,"leader_id": string | null,"name": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "code"?: string | null,"created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name": string
+                  }
+                  Update: {
+                    "code"?: string | null,"created_at"?: string,"id"?: string,"invite_code"?: string,"leader_id"?: string | null,"name"?: string
                   }
                   Relationships: [
                     
@@ -196,7 +222,7 @@ isOneToOne: false
           Views: {
             "group_progress": {
                   Row: {
-                    "closed": number | null,"group_id": string,"group_name": string,"leader_id": string | null,"leader_name": string | null,"not_found": number | null,"not_visited": number | null,"survey_id": string,"total_premises": number | null,"visited": number | null,"with_permit": number | null,"without_permit": number | null
+                    "closed": number | null,"group_id": string,"group_name": string,"leader_id": string | null,"leader_name": string | null,"not_found": number | null,"not_visited": number | null,"position": number,"survey_id": string,"team_code": string | null,"team_id": string,"total_premises": number | null,"visited": number | null,"with_permit": number | null,"without_permit": number | null
                   }
                   ComputedFields: never
                   Relationships: [
@@ -216,6 +242,9 @@ isOneToOne: false
                            },
 "auth_role":
 { Args: Record<PropertyKey, never>; Returns: Database["public"]['Enums']["user_role"]
+                           },
+"auth_team_id":
+{ Args: Record<PropertyKey, never>; Returns: string
                            },
 "generate_invite_code":
 { Args: Record<PropertyKey, never>; Returns: string

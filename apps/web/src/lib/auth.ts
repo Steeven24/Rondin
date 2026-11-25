@@ -10,7 +10,10 @@ export const HOME_BY_ROLE: Record<Role, string> = {
   member: "/member",
 };
 
-/** Profile of the signed-in user, or null. Cached for the duration of one request. */
+/**
+ * Profile of the signed-in user, or null. Cached for the duration of one request.
+ * `group_id` is the group of the user's team in the ACTIVE survey (null when there is none).
+ */
 export const getProfile = cache(async () => {
   const supabase = await createClient();
   const {
@@ -18,12 +21,11 @@ export const getProfile = cache(async () => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase
-    .from("profiles")
-    .select("id, full_name, email, role, group_id")
-    .eq("id", user.id)
-    .single();
-  return data;
+  const [{ data: profile }, { data: groupId }] = await Promise.all([
+    supabase.from("profiles").select("id, full_name, email, role, team_id").eq("id", user.id).single(),
+    supabase.rpc("auth_group_id"),
+  ]);
+  return profile ? { ...profile, group_id: groupId ?? null } : null;
 });
 
 /** Redirects away unless the signed-in user has one of the given roles. */

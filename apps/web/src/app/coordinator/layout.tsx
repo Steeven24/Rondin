@@ -5,6 +5,7 @@ const NAV = [
   { href: "/coordinator", label: "Panel general" },
   { href: "/coordinator/import", label: "Carga de Excel" },
   { href: "/coordinator/groups", label: "Grupos" },
+  { href: "/coordinator/history", label: "Historial" },
 ];
 
 export default async function CoordinatorLayout({ children }: { children: React.ReactNode }) {
