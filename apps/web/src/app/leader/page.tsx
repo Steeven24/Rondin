@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { percent } from "@/lib/progress";
 import { createClient } from "@/lib/supabase/server";
 import { PremisesTable } from "./premises-table";
+import { RemoveMemberButton } from "./remove-member-button";
 
 export const metadata: Metadata = { title: "Mi grupo" };
 
@@ -46,6 +47,7 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
   const visited = rows.filter((r) => r.visit).length;
   const toReview = rows.filter((r) => r.visit?.review_status === "pending").length;
   const shown = member ? rows.filter((r) => r.assigned_to === member) : rows;
+  const selectedMember = (members ?? []).find((m) => m.id === member);
   const memberCards = [{ id: "", full_name: "Todos" }, ...(members ?? [])].map((m) => {
     const mine = rows.filter((r) => !m.id || r.assigned_to === m.id);
     return { ...m, done: mine.filter((r) => r.visit).length, total: mine.length };
@@ -96,6 +98,12 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
         <p className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand-dark">
           Comparte el código <strong className="font-mono">{group.invite_code}</strong> con tus miembros para que se unan al grupo.
         </p>
+      )}
+
+      {selectedMember && (
+        <div className="flex justify-end">
+          <RemoveMemberButton memberId={selectedMember.id} name={selectedMember.full_name} />
+        </div>
       )}
 
       <PremisesTable key={member ?? "all"} rows={shown} members={members ?? []} />
