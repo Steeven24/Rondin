@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { InstallApp } from "@/components/install-app";
 import { LoginForms } from "./login-forms";
 
 export const metadata: Metadata = { title: "Iniciar sesión" };
@@ -11,6 +12,7 @@ export default function LoginPage() {
         <p className="text-sm text-muted">Te llevaremos a tu panel según tu rol.</p>
       </div>
       <LoginForms />
+      <InstallApp />
     </>
   );
 }
