@@ -37,7 +37,9 @@ export function InstallApp() {
     const installed =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    if (installed || recentlyDismissed()) return;
+    // Only on phones and tablets: on a computer the app is used in the browser.
+    const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1 && /macintosh/i.test(navigator.userAgent);
+    if (!isMobile || installed || recentlyDismissed()) return;
 
     const showPrompt = () => window.__rondinInstallPrompt && setMode("prompt");
     const hide = () => setMode("hidden");
