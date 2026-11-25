@@ -32,11 +32,16 @@ export const surveyImportSchema = z.object({
       z.object({
         name: z.string().trim().min(1).max(80),
         source_sheet: z.string().max(80),
+        team_code: z.string().regex(/^G\d{1,3}$/).nullable(),
         premises: z.array(premiseInputSchema).max(2000),
       }),
     )
     .min(1)
-    .max(50),
+    .max(50)
+    .refine((groups) => {
+      const codes = groups.map((g) => g.team_code).filter(Boolean);
+      return new Set(codes).size === codes.length;
+    }, "Dos hojas tienen el mismo código de grupo"),
 });
 export type SurveyImport = z.infer<typeof surveyImportSchema>;
 

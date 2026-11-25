@@ -16,6 +16,16 @@ generated automatically.
 
 Permissions are enforced in the database with Row Level Security, not only in the UI.
 
+## Teams and survey history
+
+- **Teams are permanent.** Each sheet name carries a team code in parentheses, e.g. `(G9) LA MATRIZ` → `G9`.
+  A team keeps its leader, members and invitation code across surveys; only its premises change.
+- **One active survey at a time.** The coordinator closes it from the dashboard; it then becomes read-only
+  history (no more visits) and its reports stay downloadable in **Historial** (coordinator only).
+- **New Excel:** allowed only when no survey is active. Sheets whose code already exists reuse that team;
+  new codes or sheets without a code create a new team. The `MATRIZ REFERENCIA` sheet is never imported.
+- Leaders can remove members who no longer take part; their pending premises become unassigned.
+
 ## Monorepo
 
 ```

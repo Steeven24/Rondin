@@ -5,7 +5,7 @@ import type { FormState } from "@/app/(auth)/actions";
 import { Alert, Field, SubmitButton } from "@/components/ui";
 import { createLeader } from "./actions";
 
-export function LeaderForm({ groupId }: { groupId: string }) {
+export function LeaderForm({ teamId }: { teamId: string }) {
   const [state, action] = useActionState<FormState, FormData>(createLeader, {});
 
   if (state.message) return <Alert kind="ok">{state.message}</Alert>;
@@ -14,7 +14,7 @@ export function LeaderForm({ groupId }: { groupId: string }) {
     <details className="rounded-xl border border-line-strong">
       <summary className="cursor-pointer px-4 py-3 text-sm font-semibold text-brand">Asignar líder</summary>
       <form action={action} className="grid gap-3 px-4 pb-4 sm:grid-cols-2">
-        <input type="hidden" name="group_id" value={groupId} />
+        <input type="hidden" name="team_id" value={teamId} />
         <Field label="Nombre completo" name="full_name" required />
         <Field label="Cédula" name="national_id" inputMode="numeric" maxLength={10} required />
         <Field label="Correo" name="email" type="email" required />

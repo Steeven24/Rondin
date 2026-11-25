@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { percent } from "@/lib/progress";
 import { createClient } from "@/lib/supabase/server";
 import { PremisesTable } from "./premises-table";
+import { RemoveMemberButton } from "./remove-member-button";
 
 export const metadata: Metadata = { title: "Mi grupo" };
 
@@ -13,10 +14,13 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
   const profile = await requireRole("leader");
   const supabase = await createClient();
 
+  // The team (code and members) is permanent; the group holds this survey's premises.
+  const teamId = profile.team_id ?? "";
   const groupId = profile.group_id ?? "";
-  const [{ data: group }, { data: members }, { data: premises }] = await Promise.all([
-    supabase.from("groups").select("id, name, invite_code").eq("id", groupId).single(),
-    supabase.from("profiles").select("id, full_name").eq("group_id", groupId).eq("role", "member").order("full_name"),
+  const [{ data: team }, { data: activeGroup }, { data: members }, { data: premises }] = await Promise.all([
+    supabase.from("teams").select("id, name, invite_code").eq("id", teamId).maybeSingle(),
+    supabase.from("groups").select("id, name").eq("id", groupId).maybeSingle(),
+    supabase.from("profiles").select("id, full_name").eq("team_id", teamId).eq("role", "member").order("full_name"),
     supabase
       .from("premises")
       .select("id, trade_name, owner_name, activity, address, sector, assigned_to, visits(status, registration_number, review_status)")
@@ -25,12 +29,25 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
       .order("trade_name"),
   ]);
 
-  if (!group) return <p className="text-muted">No tienes un grupo asignado.</p>;
+  if (!team) return <p className="text-muted">No tienes un equipo asignado.</p>;
+  if (!activeGroup) {
+    return (
+      <section className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-6">
+        <h1 className="text-2xl font-semibold">{team.name}</h1>
+        <p className="text-muted">No hay un relevamiento activo para tu equipo. Cuando la coordinación suba el nuevo Excel, aquí verás tus locales.</p>
+        <p className="text-sm">
+          Código de invitación del equipo: <strong className="font-mono tracking-widest">{team.invite_code}</strong> · {members?.length ?? 0} miembros
+        </p>
+      </section>
+    );
+  }
+  const group = { id: activeGroup.id, name: activeGroup.name, invite_code: team.invite_code };
 
   const rows = (premises ?? []).map((p) => ({ ...p, visit: p.visits ?? null }));
   const visited = rows.filter((r) => r.visit).length;
   const toReview = rows.filter((r) => r.visit?.review_status === "pending").length;
   const shown = member ? rows.filter((r) => r.assigned_to === member) : rows;
+  const selectedMember = (members ?? []).find((m) => m.id === member);
   const memberCards = [{ id: "", full_name: "Todos" }, ...(members ?? [])].map((m) => {
     const mine = rows.filter((r) => !m.id || r.assigned_to === m.id);
     return { ...m, done: mine.filter((r) => r.visit).length, total: mine.length };
@@ -81,6 +98,12 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
         <p className="rounded-xl bg-brand-soft px-4 py-3 text-sm text-brand-dark">
           Comparte el código <strong className="font-mono">{group.invite_code}</strong> con tus miembros para que se unan al grupo.
         </p>
+      )}
+
+      {selectedMember && (
+        <div className="flex justify-end">
+          <RemoveMemberButton memberId={selectedMember.id} name={selectedMember.full_name} />
+        </div>
       )}
 
       <PremisesTable key={member ?? "all"} rows={shown} members={members ?? []} />

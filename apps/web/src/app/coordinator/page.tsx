@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ProgressBar } from "@/components/progress-bar";
 import { percent, PROGRESS_STATE, type ProgressState, progressState, sumProgress } from "@/lib/progress";
 import { createClient } from "@/lib/supabase/server";
+import { getActiveSurvey } from "@/lib/surveys";
+import { CloseSurveyButton } from "./close-survey-button";
 
 const FILTERS: [string, string][] = [
   ["all", "Todos"],
@@ -13,21 +15,23 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
   const { filter = "all" } = await searchParams;
   const supabase = await createClient();
 
-  const { data: survey } = await supabase
-    .from("surveys")
-    .select("id, name, institution")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const survey = await getActiveSurvey(supabase);
 
   if (!survey) {
     return (
       <section className="flex flex-col items-start gap-4 rounded-2xl border border-line bg-white p-8">
-        <h1 className="text-2xl font-semibold">Aún no hay un relevamiento</h1>
-        <p className="text-muted">Sube el Excel con los locales para crear los grupos.</p>
-        <Link href="/coordinator/import" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white">
-          Subir Excel
-        </Link>
+        <h1 className="text-2xl font-semibold">No hay un relevamiento activo</h1>
+        <p className="text-muted">
+          Sube el Excel con los locales para empezar uno. Los relevamientos cerrados y sus informes están en el historial.
+        </p>
+        <div className="flex flex-wrap gap-2.5">
+          <Link href="/coordinator/import" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-white">
+            Subir Excel
+          </Link>
+          <Link href="/coordinator/history" className="rounded-xl border border-line-strong px-5 py-3 text-sm font-semibold">
+            Ver historial
+          </Link>
+        </div>
       </section>
     );
   }
@@ -67,9 +71,7 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
           <h1 className="text-[28px] font-semibold tracking-tight">Panel general</h1>
         </div>
         <div className="flex flex-wrap gap-2.5">
-          <Link href="/coordinator/import" className="flex h-11 items-center rounded-xl border border-line-strong bg-white px-4 text-sm font-semibold">
-            Subir Excel
-          </Link>
+          <CloseSurveyButton surveyId={survey.id} name={survey.name} />
           <a href={`/api/reports/survey/${survey.id}`} className="flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white">
             Informe consolidado (Excel)
           </a>
