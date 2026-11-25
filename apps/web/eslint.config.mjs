@@ -1,3 +1,5 @@
 import next from "eslint-config-next";
 
-export default [...next, { ignores: [".next/**", "src/**/*.types.ts"] }];
+const config = [...next, { ignores: [".next/**", "src/**/*.types.ts"] }];
+
+export default config;
