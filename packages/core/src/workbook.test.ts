@@ -73,6 +73,22 @@ describe("parseWorkbook", () => {
     });
   });
 
+  it("skips the reference sheet and does not flag its rows as duplicates", () => {
+    const rowA = ["1800000000001", "", "Local A", "", "Calle 1", ""];
+    const rowB = ["1800000000002", "", "Local B", "", "Calle 2", ""];
+    const data = buildWorkbook({
+      "MATRIZ REFERENCIA": [HEADER, rowA, rowB],
+      "Grupo 1": [HEADER, rowA],
+      "Grupo 2": [HEADER, rowB],
+    });
+
+    const [reference, group1, group2] = parseWorkbook(data);
+
+    expect(reference).toMatchObject({ isReference: true, rows: [] });
+    expect(group1?.rows[0]?.level).toBe("ok");
+    expect(group2?.rows[0]?.level).toBe("ok");
+  });
+
   it("reports a sheet without a RUC column", () => {
     const data = buildWorkbook({ Notas: [["Comentario"], ["nada"]] });
     expect(parseWorkbook(data)[0]?.missingColumns).toEqual(["ruc"]);

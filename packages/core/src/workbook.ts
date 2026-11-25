@@ -1,5 +1,5 @@
 import { read, utils } from "xlsx";
-import { detectColumns, type PremiseField, REQUIRED_FIELDS } from "./columns";
+import { detectColumns, normalizeHeader, type PremiseField, REQUIRED_FIELDS } from "./columns";
 import { normalizeRuc, RUC_ISSUE_MESSAGES } from "./ruc";
 import type { PremiseInput } from "./schemas";
 
@@ -18,15 +18,25 @@ export interface ParsedSheet {
   name: string;
   rows: ParsedRow[];
   missingColumns: PremiseField[];
+  /** Reference sheet (e.g. "MATRIZ REFERENCIA"): shown in the list but never imported. */
+  isReference: boolean;
 }
 
 const HEADER_SEARCH_ROWS = 10;
 
-/** Reads every sheet of the workbook. Each sheet becomes a group. */
+/** The source file has a master sheet with every premise; it is not a group. */
+export function isReferenceSheet(name: string): boolean {
+  const normalized = normalizeHeader(name);
+  return normalized.includes("matriz") || normalized.includes("referencia");
+}
+
+/** Reads every sheet of the workbook. Each sheet becomes a group, except reference sheets. */
 export function parseWorkbook(data: ArrayBuffer): ParsedSheet[] {
   const workbook = read(data, { type: "array", cellDates: false });
   const seen = new Set<string>();
   return workbook.SheetNames.map((name) => {
+    // Skipped before parsing so its rows don't count as duplicates of the group sheets.
+    if (isReferenceSheet(name)) return { name, rows: [], missingColumns: [], isReference: true };
     const sheet = workbook.Sheets[name];
     const matrix = sheet ? utils.sheet_to_json<unknown[]>(sheet, { header: 1, raw: true, defval: "" }) : [];
     return parseSheet(name, matrix, seen);
@@ -36,7 +46,7 @@ export function parseWorkbook(data: ArrayBuffer): ParsedSheet[] {
 function parseSheet(name: string, matrix: unknown[][], seen: Set<string>): ParsedSheet {
   const headerIndex = matrix.slice(0, HEADER_SEARCH_ROWS).findIndex((row) => detectColumns(row).ruc !== undefined);
   if (headerIndex === -1) {
-    return { name, rows: [], missingColumns: [...REQUIRED_FIELDS] };
+    return { name, rows: [], missingColumns: [...REQUIRED_FIELDS], isReference: false };
   }
 
   const columns = detectColumns(matrix[headerIndex] ?? []);
@@ -93,5 +103,5 @@ function parseSheet(name: string, matrix: unknown[][], seen: Set<string>): Parse
     });
   });
 
-  return { name, rows, missingColumns };
+  return { name, rows, missingColumns, isReference: false };
 }
