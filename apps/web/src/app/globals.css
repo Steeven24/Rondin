@@ -1,0 +1,35 @@
+@import "tailwindcss";
+
+/* Design tokens taken from the Rondín UI designs (indigo + yellow). */
+@theme {
+  --font-sans: var(--font-onest), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --color-ink: #1b1c45;
+  --color-muted: #5b5d7e;
+  --color-canvas: #f4f6fa;
+  --color-line: #e2e3f0;
+  --color-line-strong: #d6d7ea;
+  --color-soft: #eeeff8;
+
+  --color-brand: #30329b;
+  --color-brand-dark: #23257a;
+  --color-brand-deep: #1f1f71;
+  --color-brand-soft: #e8e8f7;
+  --color-brand-tint: #4f51aa;
+  --color-accent: #ffc600;
+
+  --color-ok: #17663a;
+  --color-ok-soft: #e3f4ea;
+  --color-warn: #8a4a06;
+  --color-warn-soft: #fdeedd;
+  --color-bad: #9a3412;
+  --color-bad-soft: #fbe6df;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  line-height: 1.45;
+}
