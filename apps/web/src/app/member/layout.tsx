@@ -7,7 +7,8 @@ export default async function MemberLayout({ children }: { children: React.React
   return (
     <>
       <AppHeader badge="Miembro" userName={profile.full_name} />
-      <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-5">{children}</main>
+      {/* Extra bottom space so the install banner never covers the last premise. */}
+      <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 pt-5 pb-28">{children}</main>
     </>
   );
 }
