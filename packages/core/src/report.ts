@@ -7,11 +7,11 @@ export interface ReportRow {
   owner_name: string | null;
   activity: string | null;
   address: string | null;
+  phone: string | null;
+  value: string | null;
   status: VisitStatus | null;
   registration_number: string | null;
   notes: string | null;
-  visited_by: string | null;
-  visited_at: string | null;
 }
 
 export interface ReportGroup {
@@ -19,16 +19,22 @@ export interface ReportGroup {
   rows: ReportRow[];
 }
 
+/** Same columns as the source Excel, plus the two filled in during the visits. */
 const DETAIL_HEADER = [
-  "N.º", "RUC", "Nombre del local", "Propietario", "Actividad", "Dirección",
-  "Estado", "N.º registro anual", "Observación", "Visitado por", "Fecha de visita",
+  "RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION",
+  "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES",
 ];
 
+/** Observation text: the visit result followed by the member's notes. */
+export function observationText(row: Pick<ReportRow, "status" | "notes">): string {
+  const status = row.status ? VISIT_STATUS_LABELS[row.status] : "Pendiente de visita";
+  return row.notes ? `${status}. ${row.notes}` : status;
+}
+
 function detailRows(rows: ReportRow[]) {
-  return rows.map((r, i) => [
-    i + 1, r.ruc, r.trade_name ?? "", r.owner_name ?? "", r.activity ?? "", r.address ?? "",
-    r.status ? VISIT_STATUS_LABELS[r.status] : "Pendiente", r.registration_number ?? "",
-    r.notes ?? "", r.visited_by ?? "", r.visited_at ? r.visited_at.slice(0, 10) : "",
+  return rows.map((r) => [
+    r.ruc, r.activity ?? "", r.trade_name ?? "", r.owner_name ?? "", r.address ?? "",
+    r.phone ?? "", r.value ?? "", r.registration_number ?? "", observationText(r),
   ]);
 }
 

@@ -8,11 +8,11 @@ const row = (overrides: Partial<ReportRow>): ReportRow => ({
   owner_name: null,
   activity: null,
   address: null,
+  phone: null,
+  value: null,
   status: null,
   registration_number: null,
   notes: null,
-  visited_by: null,
-  visited_at: null,
   ...overrides,
 });
 
@@ -37,7 +37,22 @@ describe("report", () => {
       ]),
     );
     expect(book.SheetNames).toEqual(["Resumen", "Grupo 1", "Grupo 2"]);
-    const detail = utils.sheet_to_json<unknown[]>(book.Sheets["Grupo 1"]!, { header: 1 });
-    expect(detail[1]?.[6]).toBe("No existe o ya no funciona");
+  });
+
+  it("keeps the source columns and adds registration number and observations", () => {
+    const book = read(
+      buildReportWorkbook("Informe", [
+        {
+          name: "Grupo 1",
+          rows: [row({ value: "25.5", status: "operating_with_permit", registration_number: "AMB-1", notes: "Atendió el dueño" })],
+        },
+      ]),
+    );
+    const detail = utils.sheet_to_json<unknown[]>(book.Sheets["Detalle"]!, { header: 1 });
+    expect(detail[0]).toEqual([
+      "RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION",
+      "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES",
+    ]);
+    expect(detail[1]?.slice(6)).toEqual(["25.5", "AMB-1", "Funciona con permiso. Atendió el dueño"]);
   });
 });
