@@ -12,6 +12,8 @@ export interface ReportRow {
   status: VisitStatus | null;
   registration_number: string | null;
   notes: string | null;
+  /** Link to the evidence page in the app (requires signing in); null when not visited. */
+  evidence_url?: string | null;
 }
 
 export interface ReportGroup {
@@ -19,11 +21,12 @@ export interface ReportGroup {
   rows: ReportRow[];
 }
 
-/** Same columns as the source Excel, plus the two filled in during the visits. */
+/** Same columns as the source Excel, plus the ones filled in during the visits. */
 const DETAIL_HEADER = [
   "RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION",
-  "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES",
+  "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES", "EVIDENCIA",
 ];
+const EVIDENCE_COLUMN = DETAIL_HEADER.indexOf("EVIDENCIA");
 
 /** Observation text: the visit result followed by the member's notes. */
 export function observationText(row: Pick<ReportRow, "status" | "notes">): string {
@@ -35,6 +38,7 @@ function detailRows(rows: ReportRow[]) {
   return rows.map((r) => [
     r.ruc, r.activity ?? "", r.trade_name ?? "", r.owner_name ?? "", r.address ?? "",
     r.phone ?? "", r.value ?? "", r.registration_number ?? "", observationText(r),
+    r.evidence_url ? "Ver evidencia" : "",
   ]);
 }
 
@@ -51,6 +55,11 @@ export function summarize(rows: ReportRow[]) {
 
 function detailSheet(rows: ReportRow[]) {
   const sheet = utils.aoa_to_sheet([DETAIL_HEADER, ...detailRows(rows)]);
+  // "Ver evidencia" cells become clickable links to the app.
+  rows.forEach((row, i) => {
+    const cell = sheet[utils.encode_cell({ r: i + 1, c: EVIDENCE_COLUMN })];
+    if (cell && row.evidence_url) cell.l = { Target: row.evidence_url };
+  });
   sheet["!cols"] = DETAIL_HEADER.map((h) => ({ wch: Math.max(12, h.length + 2) }));
   sheet["!autofilter"] = { ref: sheet["!ref"] ?? "A1" };
   return sheet;

@@ -1,9 +1,21 @@
 "use client";
 
 import { REVIEW_STATUS_LABELS, type ReviewStatus, type VisitStatus } from "@rondin/core";
+import Link from "next/link";
 import { Pagination, usePagination } from "@/components/pagination";
 import { StatusChip } from "@/components/status-chip";
 import { AssignSelect } from "./assign-select";
+
+/** Name of the premise; once visited it links to the evidence page (result, GPS and photos). */
+function PremiseName({ premise }: { premise: PremiseRow }) {
+  const name = premise.trade_name ?? "Sin nombre comercial";
+  if (!premise.visit) return <span className="font-semibold">{name}</span>;
+  return (
+    <Link href={`/evidence/${premise.id}`} className="font-semibold text-brand underline-offset-2 hover:underline">
+      {name} <span className="text-xs font-normal">· ver evidencia</span>
+    </Link>
+  );
+}
 
 export interface PremiseRow {
   id: string;
@@ -32,7 +44,7 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
           <li key={p.id} className="flex flex-col gap-2 border-b border-soft px-4 py-3.5">
             <div className="flex items-start justify-between gap-2">
               <span className="flex min-w-0 flex-col">
-                <span className="font-semibold">{p.trade_name ?? "Sin nombre comercial"}</span>
+                <PremiseName premise={p} />
                 <span className="text-xs text-muted">{p.owner_name}</span>
               </span>
               <StatusChip status={p.visit?.status} />
@@ -68,7 +80,7 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
               <tr key={p.id} className="border-t border-soft">
                 <td className="px-5 py-2.5">
                   <span className="flex flex-col">
-                    <span className="font-semibold">{p.trade_name ?? "Sin nombre comercial"}</span>
+                    <PremiseName premise={p} />
                     <span className="text-xs text-muted">{p.owner_name}</span>
                   </span>
                 </td>

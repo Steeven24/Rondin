@@ -44,15 +44,24 @@ describe("report", () => {
       buildReportWorkbook("Informe", [
         {
           name: "Grupo 1",
-          rows: [row({ value: "25.5", status: "operating_with_permit", registration_number: "AMB-1", notes: "Atendió el dueño" })],
+          rows: [
+            row({
+              value: "25.5",
+              status: "operating_with_permit",
+              registration_number: "AMB-1",
+              notes: "Atendió el dueño",
+              evidence_url: "https://rondin.example/evidence/abc",
+            }),
+          ],
         },
       ]),
     );
     const detail = utils.sheet_to_json<unknown[]>(book.Sheets["Detalle"]!, { header: 1 });
     expect(detail[0]).toEqual([
       "RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION",
-      "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES",
+      "TELEFONO", "VALOR", "NUMERO_FUNCIONAMIENTO", "OBSERVACIONES", "EVIDENCIA",
     ]);
-    expect(detail[1]?.slice(6)).toEqual(["25.5", "AMB-1", "Funciona con permiso. Atendió el dueño"]);
+    expect(detail[1]?.slice(6)).toEqual(["25.5", "AMB-1", "Funciona con permiso. Atendió el dueño", "Ver evidencia"]);
+    expect(book.Sheets["Detalle"]?.["J2"]?.l?.Target).toBe("https://rondin.example/evidence/abc");
   });
 });
