@@ -4,6 +4,7 @@ import { percent, PROGRESS_STATE, type ProgressState, progressState, sumProgress
 import { createClient } from "@/lib/supabase/server";
 import { getActiveSurvey } from "@/lib/surveys";
 import { CloseSurveyButton } from "./close-survey-button";
+import { SurveyDetails } from "./survey-details";
 
 const FILTERS: [string, string][] = [
   ["all", "Todos"],
@@ -68,8 +69,8 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
     <>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <span className="text-[13px] text-muted">{survey.name}</span>
           <h1 className="text-[28px] font-semibold tracking-tight">Panel general</h1>
+          <SurveyDetails surveyId={survey.id} name={survey.name} institution={survey.institution} period={survey.period} />
         </div>
         <div className="flex flex-wrap gap-2.5">
           <CloseSurveyButton surveyId={survey.id} name={survey.name} />
@@ -79,11 +80,11 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
         </div>
       </header>
 
-      <section className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {kpis.map((k) => (
-          <div key={k.label} className="flex flex-col gap-1.5 rounded-2xl border border-line bg-white px-5 py-4">
+          <div key={k.label} className="flex flex-col gap-1 rounded-2xl border border-line bg-white px-4 py-3.5 sm:gap-1.5 sm:px-5 sm:py-4">
             <span className="text-[13px] text-muted">{k.label}</span>
-            <span className="text-[32px] leading-tight font-semibold tracking-tight">{k.value}</span>
+            <span className="text-2xl leading-tight font-semibold tracking-tight sm:text-[32px]">{k.value}</span>
             <span className="text-[13px] text-muted">{k.note}</span>
           </div>
         ))}
@@ -106,7 +107,27 @@ export default async function CoordinatorDashboard({ searchParams }: { searchPar
               ))}
             </nav>
           </div>
-          <div className="overflow-x-auto">
+          {/* Phone: one compact row per group. */}
+          <ul className="flex flex-col md:hidden">
+            {shown.map((g) => {
+              const pct = percent(Number(g.visited), Number(g.total_premises));
+              const state = PROGRESS_STATE[g.state];
+              return (
+                <li key={g.group_id} className="flex flex-col gap-1.5 border-b border-soft py-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-semibold">{g.group_name}</span>
+                    <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold ${state.chip}`}>{state.label}</span>
+                  </div>
+                  <span className="text-[13px] text-muted">{g.leader_name ?? "Sin líder"}</span>
+                  <span className="flex items-center gap-2.5">
+                    <ProgressBar value={pct} color={state.bar} label={`Avance de ${g.group_name}`} />
+                    <span className="font-mono text-xs text-muted">{g.visited}/{g.total_premises} · {pct}%</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[620px] text-sm">
               <thead>
                 <tr className="border-b border-line text-left text-xs text-muted">

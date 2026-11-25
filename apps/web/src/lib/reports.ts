@@ -1,5 +1,6 @@
 import "server-only";
 import { buildReportWorkbook, type ReportGroup } from "@rondin/core";
+import { env } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 
 type Client = Awaited<ReturnType<typeof createClient>>;
@@ -11,7 +12,7 @@ export async function loadReportGroups(supabase: Client, groupIds: string[]): Pr
     supabase
       .from("premises")
       .select(
-        "group_id, ruc, trade_name, owner_name, activity, address, phone, value, visits(status, registration_number, notes)",
+        "id, group_id, ruc, trade_name, owner_name, activity, address, phone, value, visits(status, registration_number, notes)",
       )
       .in("group_id", groupIds)
       .order("trade_name"),
@@ -32,6 +33,7 @@ export async function loadReportGroups(supabase: Client, groupIds: string[]): Pr
         status: p.visits?.status ?? null,
         registration_number: p.visits?.registration_number ?? null,
         notes: p.visits?.notes ?? null,
+        evidence_url: p.visits ? `${env.siteUrl}/evidence/${p.id}` : null,
       })),
   }));
 }

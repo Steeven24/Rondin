@@ -20,7 +20,7 @@ export function NavLinks({ items }: { items: NavItem[] }) {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Secciones" className="flex flex-wrap gap-1 text-sm">
+    <nav aria-label="Secciones" className="flex gap-1 text-sm whitespace-nowrap">
       {items.map((item) => {
         const active = isActive(pathname, item.href, items);
         return (

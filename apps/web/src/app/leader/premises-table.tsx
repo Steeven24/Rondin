@@ -1,9 +1,21 @@
 "use client";
 
 import { REVIEW_STATUS_LABELS, type ReviewStatus, type VisitStatus } from "@rondin/core";
+import Link from "next/link";
 import { Pagination, usePagination } from "@/components/pagination";
 import { StatusChip } from "@/components/status-chip";
 import { AssignSelect } from "./assign-select";
+
+/** Name of the premise; once visited it links to the evidence page (result, GPS and photos). */
+function PremiseName({ premise }: { premise: PremiseRow }) {
+  const name = premise.trade_name ?? "Sin nombre comercial";
+  if (!premise.visit) return <span className="font-semibold">{name}</span>;
+  return (
+    <Link href={`/evidence/${premise.id}`} className="font-semibold text-brand underline-offset-2 hover:underline">
+      {name} <span className="text-xs font-normal">· ver evidencia</span>
+    </Link>
+  );
+}
 
 export interface PremiseRow {
   id: string;
@@ -26,7 +38,31 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
 
   return (
     <section className="flex flex-col gap-3 rounded-2xl border border-line bg-white pt-1.5 pb-4">
-      <div className="overflow-x-auto">
+      {/* Phone: one card per premise, with the assignment dropdown full width. */}
+      <ul className="flex flex-col md:hidden">
+        {pagination.pageItems.map((p) => (
+          <li key={p.id} className="flex flex-col gap-2 border-b border-soft px-4 py-3.5">
+            <div className="flex items-start justify-between gap-2">
+              <span className="flex min-w-0 flex-col">
+                <PremiseName premise={p} />
+                <span className="text-xs text-muted">{p.owner_name}</span>
+              </span>
+              <StatusChip status={p.visit?.status} />
+            </div>
+            <span className="text-[13px] text-muted">
+              {[p.activity, p.address].filter(Boolean).join(" · ") || "Sin dirección"}
+            </span>
+            {p.visit && (
+              <span className="text-xs text-muted">
+                N.º funcionamiento: <span className="font-mono text-ink">{p.visit.registration_number ?? "—"}</span> ·{" "}
+                {REVIEW_STATUS_LABELS[p.visit.review_status]}
+              </span>
+            )}
+            <AssignSelect premiseId={p.id} assignedTo={p.assigned_to} members={members} disabled={!!p.visit} />
+          </li>
+        ))}
+      </ul>
+      <div className="hidden overflow-x-auto md:block">
         <table className="w-full min-w-[1100px] text-sm [&_td]:align-top">
           <thead>
             <tr className="text-left text-xs text-muted">
@@ -44,7 +80,7 @@ export function PremisesTable({ rows, members }: PremisesTableProps) {
               <tr key={p.id} className="border-t border-soft">
                 <td className="px-5 py-2.5">
                   <span className="flex flex-col">
-                    <span className="font-semibold">{p.trade_name ?? "Sin nombre comercial"}</span>
+                    <PremiseName premise={p} />
                     <span className="text-xs text-muted">{p.owner_name}</span>
                   </span>
                 </td>

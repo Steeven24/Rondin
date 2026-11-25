@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PhotoGallery } from "@/components/photo-gallery";
 import { requireRole } from "@/lib/auth";
+import { loadEvidence } from "@/lib/evidence";
 import { createClient } from "@/lib/supabase/server";
 import { VisitForm } from "./visit-form";
 
@@ -20,6 +22,8 @@ export default async function VisitPage({ params }: { params: Promise<{ premiseI
   const visit = premise.visits;
   const photoCount = visit?.photos?.[0]?.count ?? 0;
   const locked = visit?.review_status === "approved";
+  // Photos already sent, so the member can see what the leader will review.
+  const photos = photoCount > 0 ? ((await loadEvidence(supabase, premiseId))?.photos ?? []) : [];
 
   return (
     <>
@@ -30,6 +34,12 @@ export default async function VisitPage({ params }: { params: Promise<{ premiseI
         <span className="text-sm text-muted">{premise.activity} · {premise.address}</span>
         <span className="font-mono text-xs text-muted">RUC {premise.ruc}</span>
       </div>
+      {photos.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-semibold">Fotos ya enviadas</h2>
+          <PhotoGallery photos={photos} />
+        </section>
+      )}
       {locked ? (
         <p className="rounded-xl bg-ok-soft px-4 py-3 text-sm text-ok">Esta visita ya fue aprobada por tu líder.</p>
       ) : (
