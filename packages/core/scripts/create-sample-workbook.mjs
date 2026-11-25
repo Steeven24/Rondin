@@ -1,30 +1,30 @@
-// Creates fixtures/sample-survey.xlsx with FAKE data for demos and manual tests.
+// Creates fixtures/sample-survey.xlsx with FAKE data in the same format as the real source file.
 // Usage: node packages/core/scripts/create-sample-workbook.mjs
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { utils, write } from "xlsx";
 
-const HEADER = ["RUC", "Actividad", "Nombre Comercial", "Propietario", "Dirección", "Teléfono", "Sector"];
-const ACTIVITIES = ["Tienda / abarrotes", "Restaurante", "Heladería", "Cafe-net", "Panadería", "Ferretería"];
-const SECTORS = ["Centro", "La Merced", "Los Pinos", "Huachi", "Ficoa"];
+const HEADER = ["RUC", "TIPO_ESTABLECIMIENTO", "NOMBRE_COMERCIAL", "REPRESENTANTE_LEGAL", "DIRECCION", "TELEFONO", "VALOR"];
+const TYPES = ["Tienda / abarrotes", "Restaurante", "Heladería", "Cafe-net", "Panadería", "Ferretería"];
 const NAMES = ["Ana", "Luis", "María", "Carlos", "Rosa", "Jorge", "Elena", "Pedro"];
 const SURNAMES = ["Pérez", "Gómez", "López", "Torres", "Vega", "Mora", "Ruiz", "Silva"];
+const GROUPS = 11;
+const PER_GROUP = 14;
 
 const workbook = utils.book_new();
-for (let group = 1; group <= 3; group++) {
+for (let group = 1; group <= GROUPS; group++) {
   const rows = [HEADER];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < PER_GROUP; i++) {
     const n = group * 100 + i;
-    const ruc = `18${String(10000000 + n * 7919).slice(0, 8)}001`;
     rows.push([
-      ruc,
-      ACTIVITIES[n % ACTIVITIES.length],
+      `18${String(10000000 + n * 7919).slice(0, 8)}001`,
+      TYPES[n % TYPES.length],
       `Local Demo ${n}`,
       `${SURNAMES[(n + 3) % 8]} ${SURNAMES[n % 8]} ${NAMES[n % 8]}`,
       `Calle Ficticia ${n} y Av. Ejemplo`,
       `09${String(90000000 + n).slice(0, 8)}`,
-      SECTORS[i % SECTORS.length],
+      [25, 40, 60, 80][n % 4],
     ]);
   }
   // Typical Excel damage, to show the validations.
