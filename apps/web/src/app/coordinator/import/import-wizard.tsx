@@ -3,6 +3,7 @@
 import { extractTeamCode, normalizeRuc, type ParsedSheet, parseWorkbook, RUC_ISSUE_MESSAGES } from "@rondin/core";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Alert, Field } from "@/components/ui";
 import { importSurvey } from "./actions";
 import { SheetPreview } from "./sheet-preview";
@@ -30,6 +31,7 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
   const [selected, setSelected] = useState(0);
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
+  const [surveyForm, setSurveyForm] = useState<FormData | null>(null);
 
   // The file is read in the browser: personal data only leaves the device after confirming.
   async function handleFile(file: File | undefined) {
@@ -71,25 +73,36 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
   const totalValid = usable.reduce((sum, s) => sum + validRows(s).length, 0);
   const totalErrors = usable.reduce((sum, s) => sum + s.rows.length - validRows(s).length, 0);
 
-  function submit(formData: FormData) {
-    setError("");
-    const groups = usable
-      .map((sheet) => ({
-        name: sheet.name.slice(0, 80),
-        source_sheet: sheet.name.slice(0, 80),
-        team_code: extractTeamCode(sheet.name),
-        premises: validRows(sheet).map((r) => ({ ...r.premise, ruc: r.premise.ruc as string })),
-      }))
-      .filter((g) => g.premises.length > 0);
+  const groups = usable
+    .map((sheet) => ({
+      name: sheet.name.slice(0, 80),
+      source_sheet: sheet.name.slice(0, 80),
+      team_code: extractTeamCode(sheet.name),
+      premises: validRows(sheet).map((r) => ({ ...r.premise, ruc: r.premise.ruc as string })),
+    }))
+    .filter((g) => g.premises.length > 0);
+  const keptTeams = groups.filter((g) => g.team_code && knownTeams.some((t) => t.code === g.team_code)).length;
+  const withoutCode = groups.filter((g) => !g.team_code).length;
 
+  // The form only opens the confirmation; the import runs when the coordinator confirms.
+  function askConfirmation(formData: FormData) {
+    setError("");
+    setSurveyForm(formData);
+  }
+
+  function runImport() {
+    if (!surveyForm) return;
     startTransition(async () => {
       const result = await importSurvey({
-        name: String(formData.get("name") ?? ""),
-        institution: String(formData.get("institution") ?? ""),
-        period: String(formData.get("period") ?? ""),
+        name: String(surveyForm.get("name") ?? ""),
+        institution: String(surveyForm.get("institution") ?? ""),
+        period: String(surveyForm.get("period") ?? ""),
         groups,
       });
-      if (result.error) return setError(result.error);
+      if (result.error) {
+        setSurveyForm(null);
+        return setError(result.error);
+      }
       router.push("/coordinator/groups");
     });
   }
@@ -163,7 +176,14 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
       )}
 
       {totalValid > 0 && (
-        <form action={submit} className="flex flex-col gap-4 rounded-2xl border border-line bg-white px-5 py-5">
+        // onSubmit (not action) so React doesn't clear the fields if the coordinator cancels.
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            askConfirmation(new FormData(e.currentTarget));
+          }}
+          className="flex flex-col gap-4 rounded-2xl border border-line bg-white px-5 py-5"
+        >
           <div className="flex flex-col gap-1">
             <h2 className="text-lg font-semibold">Datos del relevamiento</h2>
             <p className="text-[13px] text-muted">
@@ -181,11 +201,32 @@ export function ImportWizard({ knownTeams }: { knownTeams: KnownTeam[] }) {
               Después asignarás un líder a cada grupo.
             </span>
             <button type="submit" disabled={pending} className="h-11 rounded-xl bg-brand px-5 text-sm font-semibold text-white disabled:opacity-60">
-              {pending ? "Creando grupos…" : `Confirmar y crear ${usable.filter((s) => validRows(s).length).length} grupos`}
+              {`Revisar y crear ${groups.length} grupos`}
             </button>
           </div>
         </form>
       )}
+
+      <ConfirmDialog
+        open={!!surveyForm}
+        title="¿Crear el relevamiento?"
+        confirmLabel={`Sí, crear ${groups.length} grupos`}
+        pending={pending}
+        onConfirm={runImport}
+        onCancel={() => setSurveyForm(null)}
+      >
+        <p>
+          Se creará <strong className="text-ink">«{String(surveyForm?.get("name") ?? "")}»</strong> con{" "}
+          <strong className="text-ink">{groups.length} grupos</strong> y <strong className="text-ink">{totalValid} locales</strong>.
+        </p>
+        <ul className="list-disc space-y-1 pl-5">
+          {keptTeams > 0 && <li>{keptTeams} equipos se mantienen con su líder y sus miembros.</li>}
+          {groups.length - keptTeams > 0 && <li>{groups.length - keptTeams} equipos son nuevos y necesitarán un líder.</li>}
+          {withoutCode > 0 && <li className="text-warn">{withoutCode} hojas no tienen código (G#): no se podrán reconocer en el siguiente relevamiento.</li>}
+          {totalErrors > 0 && <li className="text-warn">{totalErrors} filas con errores se omitirán.</li>}
+        </ul>
+        <p>Revisa que sea el archivo correcto: el relevamiento quedará activo hasta que lo cierres.</p>
+      </ConfirmDialog>
     </div>
   );
 }
