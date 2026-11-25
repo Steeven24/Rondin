@@ -46,10 +46,10 @@ export default async function HistoryPage() {
               <summary className="cursor-pointer text-sm font-semibold text-brand">Informes por grupo</summary>
               <ul className="mt-3 grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-2">
                 {groups.map((g) => (
-                  <li key={g.id}>
-                    <a href={`/api/reports/group/${g.id}`} className="flex min-h-11 items-center rounded-xl border border-line-strong px-3.5 text-sm hover:bg-canvas">
-                      {g.name}
-                    </a>
+                  <li key={g.id} className="flex min-h-11 items-center gap-2 rounded-xl border border-line-strong px-3.5 py-2 text-sm">
+                    <span className="flex-1">{g.name}</span>
+                    <a href={`/api/reports/group/${g.id}/pdf`} className="rounded-lg bg-brand-soft px-2.5 py-1.5 font-semibold text-brand-dark">PDF</a>
+                    <a href={`/api/reports/group/${g.id}`} className="rounded-lg px-2.5 py-1.5 font-semibold text-brand hover:bg-soft">Excel</a>
                   </li>
                 ))}
               </ul>

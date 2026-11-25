@@ -85,8 +85,11 @@ export default async function LeaderPage({
           <span className="rounded-xl border border-dashed border-[#babbd9] px-4 py-2 text-sm">
             Código de invitación: <strong className="font-mono tracking-widest">{group.invite_code}</strong>
           </span>
-          <a href={`/api/reports/group/${group.id}`} className="flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white">
-            Generar informe del grupo
+          <a href={`/api/reports/group/${group.id}/pdf`} className="flex h-11 items-center rounded-xl bg-brand px-4 text-sm font-semibold text-white">
+            Informe PDF
+          </a>
+          <a href={`/api/reports/group/${group.id}`} className="flex h-11 items-center rounded-xl border border-line-strong bg-white px-4 text-sm font-semibold">
+            Excel
           </a>
         </div>
       </div>
