@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InstallApp } from "@/components/install-app";
 import { StatusChip } from "@/components/status-chip";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -50,6 +51,9 @@ export default async function MemberPage({ searchParams }: { searchParams: Promi
           </Link>
         ))}
       </nav>
+
+      {/* Members work from the phone: offer to install the app here too. */}
+      <InstallApp />
 
       {shown.length === 0 && <p className="py-8 text-center text-sm text-muted">No hay locales en esta lista.</p>}
 

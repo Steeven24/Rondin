@@ -10,6 +10,8 @@ export default function OfflinePage() {
       <Logo size={44} />
       <h1 className="text-2xl font-semibold text-white">Sin conexión</h1>
       <p className="max-w-xs">No hay señal en este momento. Cuando vuelvas a tener internet, la app se cargará de nuevo.</p>
+      {/* A full page load on purpose: client navigation would fail again without signal. */}
+      {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a href="/" className="flex h-12 items-center rounded-2xl bg-accent px-6 font-semibold text-brand-deep">
         Reintentar
       </a>
