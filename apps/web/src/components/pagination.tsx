@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-/** Splits a list into pages. Goes back to page 1 when the list changes (filter, sheet). */
+/**
+ * Splits a list into pages. To go back to page 1 when the list changes (another sheet or filter),
+ * give the component that uses it a different `key`.
+ */
 export function usePagination<T>(items: T[], pageSize = 10) {
   const [page, setPage] = useState(1);
   const pageCount = Math.max(1, Math.ceil(items.length / pageSize));
-
-  useEffect(() => setPage(1), [items.length, pageSize]);
 
   const current = Math.min(page, pageCount);
   const start = (current - 1) * pageSize;

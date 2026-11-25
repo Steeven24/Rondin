@@ -1,12 +1,10 @@
-import { REVIEW_STATUS_LABELS } from "@rondin/core";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ProgressBar } from "@/components/progress-bar";
-import { StatusChip } from "@/components/status-chip";
 import { requireRole } from "@/lib/auth";
 import { percent } from "@/lib/progress";
 import { createClient } from "@/lib/supabase/server";
-import { AssignSelect } from "./assign-select";
+import { PremisesTable } from "./premises-table";
 
 export const metadata: Metadata = { title: "Mi grupo" };
 
@@ -21,7 +19,7 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
     supabase.from("profiles").select("id, full_name").eq("group_id", groupId).eq("role", "member").order("full_name"),
     supabase
       .from("premises")
-      .select("id, trade_name, owner_name, sector, assigned_to, visits(status, registration_number, review_status)")
+      .select("id, trade_name, owner_name, activity, address, sector, assigned_to, visits(status, registration_number, review_status)")
       .eq("group_id", groupId)
       .order("sector", { nullsFirst: false })
       .order("trade_name"),
@@ -85,41 +83,7 @@ export default async function LeaderPage({ searchParams }: { searchParams: Promi
         </p>
       )}
 
-      <section className="overflow-x-auto rounded-2xl border border-line bg-white">
-        <table className="w-full min-w-[900px] text-sm">
-          <thead>
-            <tr className="text-left text-xs text-muted">
-              <th className="px-5 py-3 font-normal">Local</th>
-              <th className="px-3 py-3 font-normal">Sector</th>
-              <th className="px-3 py-3 font-normal">Asignado a</th>
-              <th className="px-3 py-3 font-normal">Estado</th>
-              <th className="px-3 py-3 font-normal">N.º registro anual</th>
-              <th className="px-5 py-3 font-normal">Revisión</th>
-            </tr>
-          </thead>
-          <tbody>
-            {shown.map((p) => (
-              <tr key={p.id} className="border-t border-soft">
-                <td className="px-5 py-2.5">
-                  <span className="flex flex-col">
-                    <span className="font-semibold">{p.trade_name ?? "Sin nombre comercial"}</span>
-                    <span className="text-xs text-muted">{p.owner_name}</span>
-                  </span>
-                </td>
-                <td className="px-3 py-2.5 text-muted">{p.sector ?? "—"}</td>
-                <td className="px-3 py-2.5">
-                  <AssignSelect premiseId={p.id} assignedTo={p.assigned_to} members={members ?? []} disabled={!!p.visit} />
-                </td>
-                <td className="px-3 py-2.5"><StatusChip status={p.visit?.status} /></td>
-                <td className="px-3 py-2.5 font-mono text-[13px]">{p.visit?.registration_number ?? "·"}</td>
-                <td className="px-5 py-2.5 text-[13px] text-muted">
-                  {p.visit ? REVIEW_STATUS_LABELS[p.visit.review_status] : "—"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </section>
+      <PremisesTable key={member ?? "all"} rows={shown} members={members ?? []} />
     </>
   );
 }
