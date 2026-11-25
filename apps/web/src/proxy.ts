@@ -3,7 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/join", "/forgot-password", "/auth", "/privacy"];
+const PUBLIC_PATHS = ["/login", "/join", "/forgot-password", "/auth", "/privacy", "/api/health"];
 
 /** Refreshes the Supabase session on every request and protects private routes. */
 export async function proxy(request: NextRequest) {
