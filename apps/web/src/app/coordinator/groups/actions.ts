@@ -9,7 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const leaderSchema = z.object({
-  group_id: z.uuid(),
+  team_id: z.uuid(),
   full_name: z.string().trim().min(3, "Ingresa el nombre completo").max(120),
   national_id: z.string().trim().refine(isValidNationalId, "Cédula no válida"),
   email: z.email("Correo no válido"),
@@ -20,18 +20,21 @@ const leaderSchema = z.object({
     .regex(/\d/, "La contraseña debe tener números"),
 });
 
-/** Creates the leader account of a group. The coordinator shares the temporary password. */
+/**
+ * Creates the leader account of a team. The leader stays with the team in later surveys.
+ * The coordinator shares the temporary password.
+ */
 export async function createLeader(_: FormState, formData: FormData): Promise<FormState> {
   await requireRole("coordinator");
   const parsed = leaderSchema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
-  const { group_id, full_name, national_id, email, password } = parsed.data;
+  const { team_id, full_name, national_id, email, password } = parsed.data;
 
-  // Checked with the user's own client, so RLS confirms the group is visible to this coordinator.
+  // Checked with the user's own client, so RLS confirms the coordinator can see the team.
   const supabase = await createClient();
-  const { data: group } = await supabase.from("groups").select("id, leader_id").eq("id", group_id).single();
-  if (!group) return { error: "Grupo no encontrado." };
-  if (group.leader_id) return { error: "Este grupo ya tiene un líder." };
+  const { data: team } = await supabase.from("teams").select("id, leader_id").eq("id", team_id).single();
+  if (!team) return { error: "Equipo no encontrado." };
+  if (team.leader_id) return { error: "Este equipo ya tiene un líder." };
 
   const admin = createAdminClient();
   const { data: created, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
@@ -39,12 +42,12 @@ export async function createLeader(_: FormState, formData: FormData): Promise<Fo
 
   const { error: profileError } = await admin
     .from("profiles")
-    .insert({ id: created.user.id, full_name, national_id, email, role: "leader", group_id });
-  const { error: groupError } = profileError
+    .insert({ id: created.user.id, full_name, national_id, email, role: "leader", team_id });
+  const { error: teamError } = profileError
     ? { error: profileError }
-    : await admin.from("groups").update({ leader_id: created.user.id }).eq("id", group_id);
+    : await admin.from("teams").update({ leader_id: created.user.id }).eq("id", team_id);
 
-  if (profileError || groupError) {
+  if (profileError || teamError) {
     await admin.auth.admin.deleteUser(created.user.id);
     return { error: "No se pudo asignar el líder. Inténtalo de nuevo." };
   }
