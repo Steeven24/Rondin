@@ -15,21 +15,25 @@ declare global {
   }
 }
 
-type Mode = "hidden" | "prompt" | "ios";
+/**
+ * - prompt: Chrome gave us its install event → "Instalar" button with the native dialog.
+ * - android: no event (Chrome holds it back for a while after a dismissal) → menu instructions.
+ * - ios: Apple has no install API → Share menu instructions.
+ */
+type Mode = "hidden" | "prompt" | "android" | "ios";
 
-const DISMISS_KEY = "rondin:install-dismissed-at";
-const DISMISS_DAYS = 7;
+// Closing the banner hides it only until the browser is closed, so it comes back next time.
+// (A new key: the old 7-day value saved in localStorage is ignored.)
+const DISMISS_KEY = "rondin:install-dismissed";
 
-function recentlyDismissed() {
-  const at = Number(localStorage.getItem(DISMISS_KEY) ?? 0);
-  return Date.now() - at < DISMISS_DAYS * 24 * 60 * 60 * 1000;
+function isPhoneOrTablet() {
+  const ua = navigator.userAgent;
+  const mobileDevice = /android|iphone|ipad|ipod|mobile/i.test(ua) || (navigator.maxTouchPoints > 1 && /macintosh/i.test(ua));
+  // Touch as the main input rules out computers, including laptops with a touch screen.
+  return mobileDevice && window.matchMedia("(pointer: coarse)").matches;
 }
 
-/**
- * Banner fixed at the bottom of the screen inviting to install the app.
- * Android/desktop Chrome: native install dialog. iPhone: instructions (Apple has no install API).
- * "Ahora no" hides it for 7 days.
- */
+/** Banner fixed at the bottom of the screen inviting to install the app. Phones and tablets only. */
 export function InstallApp() {
   const [mode, setMode] = useState<Mode>("hidden");
 
@@ -37,19 +41,17 @@ export function InstallApp() {
     const installed =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as Navigator & { standalone?: boolean }).standalone === true;
-    // Only on phones and tablets: on a computer the app is used in the browser.
-    const isMobile = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1 && /macintosh/i.test(navigator.userAgent);
-    if (!isMobile || installed || recentlyDismissed()) return;
+    if (!isPhoneOrTablet() || installed || sessionStorage.getItem(DISMISS_KEY)) return;
 
     const showPrompt = () => window.__rondinInstallPrompt && setMode("prompt");
     const hide = () => setMode("hidden");
     window.addEventListener("rondin:installable", showPrompt);
     window.addEventListener("appinstalled", hide);
 
-    // The event may already have fired before this component mounted.
+    // The event may already have fired before this component mounted; if not, show instructions.
     const timer = window.setTimeout(() => {
       if (window.__rondinInstallPrompt) setMode("prompt");
-      else if (/iphone|ipad|ipod/i.test(navigator.userAgent)) setMode("ios");
+      else setMode(/iphone|ipad|ipod|macintosh/i.test(navigator.userAgent) ? "ios" : "android");
     }, 0);
 
     return () => {
@@ -62,7 +64,7 @@ export function InstallApp() {
   if (mode === "hidden") return null;
 
   function dismiss() {
-    localStorage.setItem(DISMISS_KEY, String(Date.now()));
+    sessionStorage.setItem(DISMISS_KEY, "1");
     setMode("hidden");
   }
 
@@ -71,10 +73,16 @@ export function InstallApp() {
     if (!event) return;
     await event.prompt();
     const { outcome } = await event.userChoice;
+    // Chrome's event can be used only once; if they cancel, fall back to the menu instructions.
     window.__rondinInstallPrompt = undefined;
-    if (outcome === "accepted") setMode("hidden");
-    else dismiss();
+    setMode(outcome === "accepted" ? "hidden" : "android");
   }
+
+  const hint = {
+    prompt: "Ábrela como una app, sin el navegador.",
+    android: "Toca ⋮ y luego «Instalar aplicación».",
+    ios: "Toca Compartir y luego «Agregar a inicio».",
+  }[mode];
 
   return (
     <aside
@@ -90,9 +98,7 @@ export function InstallApp() {
       </span>
       <div className="flex min-w-0 flex-1 flex-col">
         <span className="text-sm font-semibold text-ink">Instala Rondín en tu celular</span>
-        <span className="text-xs text-muted">
-          {mode === "ios" ? "Toca Compartir y luego «Agregar a inicio»." : "Ábrela como una app, sin el navegador."}
-        </span>
+        <span className="text-xs text-muted">{hint}</span>
       </div>
       {mode === "prompt" && (
         <button type="button" onClick={install} className="h-10 shrink-0 rounded-xl bg-brand px-3.5 text-sm font-semibold text-white">
