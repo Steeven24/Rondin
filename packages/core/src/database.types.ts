@@ -77,14 +77,14 @@ isOneToOne: false
                   ]
                 },"premises": {
                   Row: {
-                    "activity": string | null,"address": string | null,"assigned_to": string | null,"created_at": string,"group_id": string,"id": string,"owner_name": string | null,"phone": string | null,"ruc": string,"sector": string | null,"trade_name": string | null
+                    "activity": string | null,"address": string | null,"assigned_to": string | null,"created_at": string,"group_id": string,"id": string,"owner_name": string | null,"phone": string | null,"ruc": string,"sector": string | null,"trade_name": string | null,"value": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id": string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc": string,"sector"?: string | null,"trade_name"?: string | null
+                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id": string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc": string,"sector"?: string | null,"trade_name"?: string | null,"value"?: string | null
                   }
                   Update: {
-                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id"?: string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc"?: string,"sector"?: string | null,"trade_name"?: string | null
+                    "activity"?: string | null,"address"?: string | null,"assigned_to"?: string | null,"created_at"?: string,"group_id"?: string,"id"?: string,"owner_name"?: string | null,"phone"?: string | null,"ruc"?: string,"sector"?: string | null,"trade_name"?: string | null,"value"?: string | null
                   }
                   Relationships: [
                     {
